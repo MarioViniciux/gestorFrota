@@ -26,25 +26,37 @@ public class Pessoa {
     //Métodos setters
     
     public void setNome(String nome){
+        if(nome == null || nome.trim().isEmpty()){
+            throw new IllegalArgumentException("O nome nao pode ser vazio.");
+        }
         this.nome = nome;
     }
     
     public void setIdade(int idade){
-        if(idade<0){
-            throw new IllegalArgumentException("A idade nao pode ser negativa.");
+        if(idade<=0){
+            throw new IllegalArgumentException("A idade deve ser maior que zero.");
         }
         this.idade = idade;
     }
     
     public void setCpf(String cpf){
+        if(cpf == null || !cpf.matches("\\d{11}")){
+            throw new IllegalArgumentException("O cpf deve conte 11 digitos.");
+        }
         this.cpf = cpf;
     }
     
     public void setTelefone(String telefone){
+        if(telefone == null || telefone.trim().isEmpty()){
+            throw new IllegalArgumentException("O telefone nao pode ser vazio.");
+        }
         this.telefone = telefone;
     }
     
     public void setEmail(String email){
+        if(email == null || !email.matches("^[\\w.-]+@[\\w.-]+\\.\\w+$")){
+            throw new IllegalArgumentException("Email invalido.");
+        }
         this.email = email;
     }
 

@@ -23,14 +23,23 @@ public class Motorista extends Pessoa{
     
     //SETTERS
     public void setNumeroCNH(String numeroCNH){
+        if(numeroCNH == null || !numeroCNH.matches("\\d{11}")){
+            throw new IllegalArgumentException("A CNH deve conte 11 digitos.");
+        }
         this.numeroCNH = numeroCNH;
     }
     
     public void setCategoriaCNH(CategoriaCNH tipoCNH){
+        if(tipoCNH == null){
+            throw new IllegalArgumentException("A categoria da CNH e obrigatoria");
+        }
         this.tipoCNH = tipoCNH;
     }
     
     public void setValidadeCNH(LocalDate validadeCNH){
+        if(validadeCNH == null){
+            throw new IllegalArgumentException("A validade da CNH e obrigatoria");
+        }
         this.validadeCNH = validadeCNH;
     }
     
@@ -58,10 +67,17 @@ public class Motorista extends Pessoa{
     
     //VERIFICACAO DE CNH VENCIDA
     public boolean cnhVencida(){
-        
+        if(this.validadeCNH == null){
+            throw new IllegalStateException("Validade da CNH nao informada.");
+        }     
         //o isBefore retorna falso se a data passar da validade
         return this.validadeCNH.isBefore(LocalDate.now());
         
+    }
+     
+    //VERIFICA SE O MOTORISTA ESTA ATIVO E TEM TEM CNH VALIDA
+    public boolean estaDisponivel(){
+        return this.ativo && !cnhVencida();
     }
 }
 
