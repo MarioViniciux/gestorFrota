@@ -1,4 +1,4 @@
-package gestaoveicular;
+package com.mycompany.gestorfrotaentrega;
 
 import java.util.ArrayList;
 import java.util.List;
