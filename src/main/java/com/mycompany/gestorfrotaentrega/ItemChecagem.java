@@ -1,4 +1,4 @@
-package gestaoveicular;
+package com.mycompany.gestorfrotaentrega;
 
 /**
  * Item individual de checagem/manutenção de um sistema do veículo.
