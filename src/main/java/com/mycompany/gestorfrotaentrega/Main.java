@@ -1,4 +1,4 @@
-package gestaoveicular;
+package com.mycompany.gestorfrotaentrega;
 //gestaoveicular
 public class Main {
 
