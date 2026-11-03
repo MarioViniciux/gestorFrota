@@ -1,4 +1,4 @@
-package com.mycompany.gestorfrotaentrega;
+package com.mycompany.gestorfrotaentrega.modelo;
 
 /**
  * Item individual de checagem/manutenção de um sistema do veículo.

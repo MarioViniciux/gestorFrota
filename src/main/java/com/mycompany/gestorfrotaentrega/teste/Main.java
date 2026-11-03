@@ -1,4 +1,8 @@
-package com.mycompany.gestorfrotaentrega;
+package com.mycompany.gestorfrotaentrega.teste;
+
+import com.mycompany.gestorfrotaentrega.modelo.Veiculo;
+import com.mycompany.gestorfrotaentrega.modelo.ItemChecagem;
+
 //gestaoveicular
 public class Main {
 

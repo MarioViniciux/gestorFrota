@@ -1,4 +1,4 @@
-package com.mycompany.gestorfrotaentrega;
+package com.mycompany.gestorfrotaentrega.modelo;
 
 import java.util.ArrayList;
 import java.util.List;
