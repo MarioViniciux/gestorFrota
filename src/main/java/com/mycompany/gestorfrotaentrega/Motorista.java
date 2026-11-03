@@ -4,39 +4,49 @@
  */
 package com.mycompany.gestorfrotaentrega;
 import java.time.LocalDate;
+import java.util.Set;
+import java.util.HashSet;
 
+        
 public class Motorista extends Pessoa{
     
+    //ATRIBUTOS
     private String numeroCNH;
-    private CategoriaCNH tipoCNH;
+    private Set<CategoriaCNH> tipoCNH;
     private LocalDate validadeCNH;
     private boolean ativo;
-
-    public Motorista(String pNome, int pIdade, String pCpf, String pTelefone, String pEmail, String pNumeroCNH, CategoriaCNH pTipoCNH, LocalDate pValidadeCNH, boolean pAtivo) {
+    
+    //CONSTRUTOR
+    public Motorista(String pNome, int pIdade, String pCpf, String pTelefone, String pEmail, String pNumeroCNH, Set<CategoriaCNH> pTipoCNH, LocalDate pValidadeCNH, boolean pAtivo) {
         super(pNome, pIdade, pCpf, pTelefone, pEmail);
         
         setNumeroCNH(pNumeroCNH);
-        setCategoriaCNH(pTipoCNH);
+        
+        //Verifica se o conjunto de categorias foi informado e se possui categorias vaalidas
+        if(pTipoCNH == null || pTipoCNH.isEmpty() || pTipoCNH.contains(null)){
+            throw new IllegalArgumentException("O motorista deve ter pelo menos uma categoria valida.");
+        }
+        
+        //Cria uma copia com as categorias informadas
+        this.tipoCNH = new HashSet<>(pTipoCNH); 
+        
         setValidadeCNH(pValidadeCNH);
         setAtivo(pAtivo); 
     }
     
     //SETTERS
     public void setNumeroCNH(String numeroCNH){
+        
+        //Verifica se a CNH tem 11 digitos
         if(numeroCNH == null || !numeroCNH.matches("\\d{11}")){
             throw new IllegalArgumentException("A CNH deve conte 11 digitos.");
         }
         this.numeroCNH = numeroCNH;
     }
     
-    public void setCategoriaCNH(CategoriaCNH tipoCNH){
-        if(tipoCNH == null){
-            throw new IllegalArgumentException("A categoria da CNH e obrigatoria");
-        }
-        this.tipoCNH = tipoCNH;
-    }
-    
     public void setValidadeCNH(LocalDate validadeCNH){
+        
+        //Verifica a validade da CNH
         if(validadeCNH == null){
             throw new IllegalArgumentException("A validade da CNH e obrigatoria");
         }
@@ -53,8 +63,8 @@ public class Motorista extends Pessoa{
         return this.numeroCNH;
     }
     
-    public CategoriaCNH getTipoCNH(){
-        return this.tipoCNH;
+    public Set<CategoriaCNH> getTiposCNH(){
+        return new HashSet<>(tipoCNH);
     }
     
     public LocalDate getValidadeCNH(){
@@ -65,7 +75,7 @@ public class Motorista extends Pessoa{
         return this.ativo;
     }
     
-    //VERIFICACAO DE CNH VENCIDA
+    //Verificacao de CNH vencida
     public boolean cnhVencida(){
         if(this.validadeCNH == null){
             throw new IllegalStateException("Validade da CNH nao informada.");
@@ -75,9 +85,38 @@ public class Motorista extends Pessoa{
         
     }
      
-    //VERIFICA SE O MOTORISTA ESTA ATIVO E TEM TEM CNH VALIDA
+    //Verifica se o motorista esta ativo e tem CNH valida
     public boolean estaDisponivel(){
         return this.ativo && !cnhVencida();
     }
-}
+    
+    //GERENCIAMENTO DE CATEGORIAS
+    
+    public void adicionarCategoria(CategoriaCNH categoria){
+        if(categoria == null){
+            throw new IllegalArgumentException("Categoria invalida.");
+        }
+        //Adiciona categoria ao conjunto
+        tipoCNH.add(categoria);
+    }
+    
+    public void removerCategoria(CategoriaCNH categoria){
+        if(categoria == null){
+            throw new IllegalStateException("Categoria invalida.");
+        }
+        
+        //Impede que o motorista fique sem nenhuma categoria
+        if(tipoCNH.size() == 1 && tipoCNH.contains(categoria)){     
+            throw new IllegalArgumentException("O motorista deve possuir pelo menos uma categoria.");
+        }
+        
+        //Remove a categoria informada
+        tipoCNH.remove(categoria);
+    }
 
+    public boolean possuirCat(CategoriaCNH categoria){
+        //Verifica se o motorista tem a categoria informada
+        return tipoCNH.contains(categoria);                    //retorna true ou false
+    }
+    
+}
