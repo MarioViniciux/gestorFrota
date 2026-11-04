@@ -9,11 +9,11 @@ import java.util.Set;
 import java.util.HashSet;
 
         
-public class Motorista extends Pessoa{
+public class Motorista extends Pessoa implements Persistivel{
     
     //ATRIBUTOS
     private String numeroCNH;
-    private Set<CategoriaCNH> tipoCNH;
+    private Set<CategoriaCNH> tiposCNH;
     private LocalDate validadeCNH;
     private boolean ativo;
     
@@ -29,7 +29,7 @@ public class Motorista extends Pessoa{
         }
         
         //Cria uma copia com as categorias informadas
-        this.tipoCNH = new HashSet<>(pTipoCNH); 
+        this.tiposCNH = new HashSet<>(pTipoCNH); 
         
         setValidadeCNH(pValidadeCNH);
         setAtivo(pAtivo); 
@@ -65,7 +65,7 @@ public class Motorista extends Pessoa{
     }
     
     public Set<CategoriaCNH> getTiposCNH(){
-        return new HashSet<>(tipoCNH);
+        return new HashSet<>(tiposCNH);
     }
     
     public LocalDate getValidadeCNH(){
@@ -98,26 +98,71 @@ public class Motorista extends Pessoa{
             throw new IllegalArgumentException("Categoria invalida.");
         }
         //Adiciona categoria ao conjunto
-        tipoCNH.add(categoria);
+        tiposCNH.add(categoria);
     }
     
     public void removerCategoria(CategoriaCNH categoria){
         if(categoria == null){
-            throw new IllegalStateException("Categoria invalida.");
+            throw new IllegalArgumentException("Categoria invalida.");
         }
         
         //Impede que o motorista fique sem nenhuma categoria
-        if(tipoCNH.size() == 1 && tipoCNH.contains(categoria)){     
+        if(tiposCNH.size() == 1 && tiposCNH.contains(categoria)){     
             throw new IllegalArgumentException("O motorista deve possuir pelo menos uma categoria.");
         }
         
         //Remove a categoria informada
-        tipoCNH.remove(categoria);
+        tiposCNH.remove(categoria);
     }
 
-    public boolean possuirCat(CategoriaCNH categoria){
+    public boolean possuirCategoria(CategoriaCNH categoria){
         //Verifica se o motorista tem a categoria informada
-        return tipoCNH.contains(categoria);                    //retorna true ou false
+        return tiposCNH.contains(categoria);                    //retorna true ou false
     }
     
+    @Override
+    public String paraLinha(){
+        
+        //Constroi uma sequencia de texto
+        StringBuilder categoriasTexto = new StringBuilder();
+        
+        //Percorre todasa as categorias de motorista
+        for(CategoriaCNH categoria : tiposCNH){
+            if(categoriasTexto.length()>0){
+                categoriasTexto.append(",");
+            }
+        categoriasTexto.append(categoria.name());
+        }
+        
+        //Junta todos os dados do motorista em uma unica linha
+       return getNome() + ";" +
+               getIdade() + ";" +
+               getCpf() + ";" +
+               getTelefone() + ";" + 
+               getEmail() + ";" + 
+               numeroCNH + ";" + 
+               categoriasTexto + ";" + 
+               validadeCNH + ";" +
+               ativo;
+        }
+    
+        //Converte o texto das categorias em um conjunto de categorias CNH
+        public static Set<CategoriaCNH>lerCategorias(String texto){
+            
+            //Cria um conjunto vazio para armazenar as categorias
+            Set<CategoriaCNH> categorias = new HashSet<>();
+            
+            //Separa as categorias utilizando uma virgula
+            String[] partes = texto.split(",");
+            
+            //Percorre cada categoria encontrada no texto
+            for(String parte : partes){
+                
+                //Converte o texto para uma constante do enum CategoriaCNH
+                categorias.add(CategoriaCNH.valueOf(parte));
+            }
+            
+            //Retorna o conjunto de categorias convertido
+            return categorias;
+        }
 }
