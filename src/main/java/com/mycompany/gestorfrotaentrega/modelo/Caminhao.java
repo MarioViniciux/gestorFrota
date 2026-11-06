@@ -1,0 +1,204 @@
+package com.mycompany.gestorfrotaentrega.modelo;
+
+/**
+ * REQUISITO DO PROFESSOR (herança):
+ * Caminhao ESPECIALIZA Veiculo. Os atributos de carga (CMT, tara, PBTC, volume do baú)
+ * saíram da classe genérica Veiculo, pois só fazem sentido para caminhões.
+ */
+public class Caminhao extends Veiculo {
+
+    // Custo de desgaste por km = base + (valor por eixo x número de eixos).
+    // Quanto mais eixos, mais pneus e freios para desgastar. Valores ilustrativos.
+    private static final double CUSTO_BASE_POR_KM = 0.60;
+    private static final double CUSTO_POR_EIXO_POR_KM = 0.10;
+
+    private double volumeBau;    // capacidade do baú em m³
+    private double cmt;          // Capacidade Máxima de Tração, em kg
+    private final double tara;   // REQUISITO (final): peso do veículo vazio, não muda nunca
+    private double pbtc;         // Peso Bruto Total Combinado = tara + carga atual (kg)
+    private int numeroEixos;     // influencia o custo de manutenção
+
+    /**
+     * REQUISITO (sobrecarga de construtores) - versão COMPLETA.
+     */
+    public Caminhao(String placa, String modelo, String motor, TipoCombustivel combustivel,
+                    double potencia, double consumo, double volumeBau, double cmt,
+                    double tara, int numeroEixos) {
+        super(placa, modelo, motor, combustivel, potencia, consumo); // dados comuns no pai
+
+        // Regra de negócio: o caminhão precisa ter tara positiva e CMT maior que a tara,
+        // senão não sobraria capacidade de carga.
+        if (tara <= 0 || cmt <= tara) {
+            throw new IllegalArgumentException("Tara deve ser positiva e menor que a CMT.");
+        }
+        this.tara = tara;   // atributo final: só pode ser atribuído aqui, uma única vez
+        this.pbtc = tara;   // sem carga, o peso bruto é igual à tara
+        this.cmt = cmt;
+        setVolumeBau(volumeBau);
+        setNumeroEixos(numeroEixos);
+        carregarSistemasDoManual();
+    }
+
+    /**
+     * REQUISITO (sobrecarga de construtores) - versão SIMPLES.
+     * Assume diesel, 3 eixos (6x4), motor e potência não informados.
+     */
+    public Caminhao(String placa, String modelo, double consumo, double volumeBau,
+                    double cmt, double tara) {
+        this(placa, modelo, "Não informado", TipoCombustivel.DIESEL, 0.0, consumo,
+                volumeBau, cmt, tara, 3);
+    }
+
+    @Override
+    public String getTipoVeiculo() { return "Caminhão"; }
+
+    /**
+     * Sistemas definidos no manual de manutenção técnica do caminhão (o mesmo que já
+     * existia na classe Veiculo original). Itens com (nome, km, meses) são periódicos:
+     * são reprovados automaticamente ao atingir um dos dois limites.
+     */
+    @Override
+    public void carregarSistemasDoManual() {
+        limparSistemas();
+
+        SistemaVeiculo freio = new SistemaVeiculo("Sistema de Freio");
+        freio.add(new ItemChecagem("Lonas de freio"));
+        freio.add(new ItemChecagem("Secador de ar"));
+        adicionarSistema(freio);
+
+        SistemaVeiculo eletrico = new SistemaVeiculo("Sistema Elétrico");
+        eletrico.add(new ItemChecagem("Baterias"));
+        eletrico.add(new ItemChecagem("Fusíveis e relés"));
+        eletrico.add(new ItemChecagem("Motor de arranque"));
+        eletrico.add(new ItemChecagem("Diodo"));
+        eletrico.add(new ItemChecagem("Luzes"));
+        eletrico.add(new ItemChecagem("Transparência das lanternas"));
+        eletrico.add(new ItemChecagem("Controle remoto"));
+        eletrico.add(new ItemChecagem("Alarme"));
+        adicionarSistema(eletrico);
+
+        SistemaVeiculo rodas = new SistemaVeiculo("Rodas e Pneus");
+        rodas.add(new ItemChecagem("Pneu"));
+        rodas.add(new ItemChecagem("Rodas"));
+        rodas.add(new ItemChecagem("Alinhamento"));
+        rodas.add(new ItemChecagem("Balanceamento"));
+        adicionarSistema(rodas);
+
+        SistemaVeiculo combustivelSis = new SistemaVeiculo("Sistema de Combustível");
+        combustivelSis.add(new ItemChecagem("Bomba de combustível"));
+        combustivelSis.add(new ItemChecagem("Boia"));
+        adicionarSistema(combustivelSis);
+
+        SistemaVeiculo arrefecimento = new SistemaVeiculo("Sistema de Arrefecimento");
+        arrefecimento.add(new ItemChecagem("Sistema de arrefecimento"));
+        adicionarSistema(arrefecimento);
+
+        SistemaVeiculo acessorio = new SistemaVeiculo("Acessórios");
+        acessorio.add(new ItemChecagem("Palheta do limpador"));
+        adicionarSistema(acessorio);
+
+        // Óleos: (nome, limite em km, limite em meses)
+        SistemaVeiculo lubrificacao = new SistemaVeiculo("Lubrificação, Filtros e Manutenções Periódicas");
+        lubrificacao.add(new ItemChecagem("Óleo do Motor", 40000, 12));
+        lubrificacao.add(new ItemChecagem("Óleo da Caixa de Mudança", 40000, 24));
+        lubrificacao.add(new ItemChecagem("Óleo do Eixo Traseiro", 40000, 24));
+        lubrificacao.add(new ItemChecagem("Óleo da Direção Assistiva", 20000, 12));
+        lubrificacao.add(new ItemChecagem("Óleo da Bomba para Basculação da Cabine", 20000, 12));
+        adicionarSistema(lubrificacao);
+
+        // Filtros: trocados a cada 10.000 km ou 6 meses
+        SistemaVeiculo filtro = new SistemaVeiculo("Filtros");
+        filtro.add(new ItemChecagem("Filtro de Ar", 10000, 6));
+        filtro.add(new ItemChecagem("Filtro de Combustível", 10000, 6));
+        filtro.add(new ItemChecagem("Filtro de Cabine", 10000, 6));
+        filtro.add(new ItemChecagem("Filtro de Óleo", 10000, 6));
+        adicionarSistema(filtro);
+
+        SistemaVeiculo periodicoGeral = new SistemaVeiculo("Periódicos Gerais");
+        periodicoGeral.add(new ItemChecagem("Correia de Transmissão", 30000, 18));
+        periodicoGeral.add(new ItemChecagem("Limpeza do Ar Condicionado", 15000, 12));
+        adicionarSistema(periodicoGeral);
+    }
+
+    /**
+     * Atualiza o PBTC (tara + carga) e alerta se ultrapassar a CMT.
+     * O alerta apenas avisa: o PBTC é atualizado mesmo com excesso, e a decisão
+     * de liberar ou não a viagem fica para quem usa a classe (veja isExcessoDePeso()).
+     *
+     * @param pesoCargaKilos peso da carga em kg (valor negativo é ignorado)
+     */
+    public void carregarVeiculo(double pesoCargaKilos) {
+        if (pesoCargaKilos < 0) {
+            System.out.println("Aviso: peso de carga negativo ignorado.");
+            return;
+        }
+        this.pbtc = tara + pesoCargaKilos; // substitui (não soma) a carga anterior
+        if (pbtc > cmt) {
+            System.out.printf("[ALERTA] PBTC (%.1f kg) ultrapassa a CMT (%.1f kg) em %.1f kg!%n",
+                    pbtc, cmt, pbtc - cmt);
+        }
+    }
+
+    /**
+     * REQUISITO (sobrecarga de métodos): mesmo nome, dois parâmetros.
+     * Carrega a carga principal mais uma carga extra, reaproveitando a versão de 1 parâmetro.
+     */
+    public void carregarVeiculo(double pesoCargaKilos, double cargaExtraKilos) {
+        carregarVeiculo(pesoCargaKilos + cargaExtraKilos);
+    }
+
+    /** Carga atual transportada (PBTC menos a tara), em kg. */
+    public double getCargaAtual() { return pbtc - tara; }
+
+    /** true se o peso bruto atual ultrapassa a capacidade máxima de tração. */
+    public boolean isExcessoDePeso() { return pbtc > cmt; }
+
+    /** Custeavel: base + valor por eixo (ex.: 3 eixos = 0,60 + 3 x 0,10 = R$ 0,90/km). */
+    @Override
+    public double calcularCustoManutencaoPorKm() {
+        return CUSTO_BASE_POR_KM + CUSTO_POR_EIXO_POR_KM * numeroEixos;
+    }
+
+    /** Custeavel: combustível (método do pai) + desgaste proporcional aos km. */
+    @Override
+    public double calcularCustoViagem(double km) {
+        return calcularCustoCombustivel(km) + km * calcularCustoManutencaoPorKm();
+    }
+
+    /** Gancho do pai: acrescenta eixos, baú e pesos (tara/PBTC/CMT) ao relatório. */
+    @Override
+    protected void exibirDadosEspecificos() {
+        System.out.printf("Eixos: %d | Volume do baú: %.1f m³%n", numeroEixos, volumeBau);
+        System.out.printf("Tara: %.1f kg | PBTC: %.1f kg | CMT: %.1f kg%n", tara, pbtc, cmt);
+    }
+
+    // ===== Getters e setters =====
+
+    public double getVolumeBau() { return volumeBau; }
+    public void setVolumeBau(double volumeBau) {
+        if (volumeBau < 0) {
+            throw new IllegalArgumentException("Volume do baú inválido.");
+        }
+        this.volumeBau = volumeBau;
+    }
+
+    public double getCmt() { return cmt; }
+    public void setCmt(double cmt) {
+        // Mesma regra do construtor: a CMT precisa continuar maior que a tara.
+        if (cmt <= tara) {
+            throw new IllegalArgumentException("A CMT deve ser maior que a tara.");
+        }
+        this.cmt = cmt;
+    }
+
+    public double getTara() { return tara; } // sem setter: atributo final
+    public double getPbtc() { return pbtc; } // sem setter: só muda por carregarVeiculo()
+
+    public int getNumeroEixos() { return numeroEixos; }
+    public void setNumeroEixos(int numeroEixos) {
+        if (numeroEixos < 2) {
+            throw new IllegalArgumentException("Um caminhão precisa de ao menos 2 eixos.");
+        }
+        this.numeroEixos = numeroEixos;
+    }
+}
