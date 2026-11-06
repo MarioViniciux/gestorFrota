@@ -2,6 +2,11 @@
 package com.mycompany.gestorfrotaentrega.teste;
 
 import com.mycompany.gestorfrotaentrega.modelo.Veiculo;
+import com.mycompany.gestorfrotaentrega.modelo.Caminhao;
+import com.mycompany.gestorfrotaentrega.modelo.Carro;
+import com.mycompany.gestorfrotaentrega.modelo.Moto;
+import com.mycompany.gestorfrotaentrega.modelo.TipoCombustivel;
+import com.mycompany.gestorfrotaentrega.aplicacao.RepositorioVeiculos;
 import com.mycompany.gestorfrotaentrega.modelo.ItemChecagem;
 import com.mycompany.gestorfrotaentrega.modelo.Motorista;
 import com.mycompany.gestorfrotaentrega.modelo.CategoriaCNH;
@@ -16,9 +21,13 @@ import java.util.ArrayList;
 public class Main {
 
     public static void main(String[] args) {
-        // 1. Instancia o veículo (tipo, motor, combustível, potência, baú, CMT, consumo, tara)
-        Veiculo caminhao = new Veiculo("Volvo FH 540 6x4", "D13 (12,8 litros, 6 cilindros em linha)", "Diesel",
-                540.0, 40.0, 80000.0, 2.2, 26000.0);
+        // 1. Instancia o caminhão (placa, modelo, motor, combustível (enum), potência, consumo,
+        //    baú, CMT, tara, nº de eixos).
+        //    Agora o tipo é Caminhao (filha de Veiculo, que é abstrata e não pode ser instanciada),
+        //    e o combustível é o enum TipoCombustivel.DIESEL em vez de uma String.
+        Caminhao caminhao = new Caminhao("ABC1D23", "Volvo FH 540 6x4",
+                "D13 (12,8 litros, 6 cilindros em linha)", TipoCombustivel.DIESEL,
+                540.0, 2.2, 40.0, 80000.0, 26000.0, 3);
 
         System.out.println(">>> Estado inicial");
         caminhao.exibirRelatorioChecagem();
@@ -63,8 +72,51 @@ public class Main {
         System.out.println(">>> Trocando o óleo do motor");
         caminhao.buscarItem("Óleo do Motor").concluirManutencao();
         System.out.println("Óleo do Motor apto? " + caminhao.buscarItem("Óleo do Motor").isApto());
-    
-    
+        // ===== TESTE DE FROTA (polimorfismo, enum, sobrecarga e repositório) =====
+        System.out.println("\n>>> TESTE DE FROTA");
+
+        // Carro criado com o construtor COMPLETO (8 parâmetros). Usa o enum ETANOL.
+        Carro carro = new Carro("DEF4G56", "Fiat Fiorino", "1.4 Fire", TipoCombustivel.ETANOL,
+                88.0, 8.5, 2, 650.0);
+
+        // Moto criada com o construtor SIMPLES (sobrecarga): assume gasolina, motor não informado e baú.
+        Moto moto = new Moto("GHI7J89", "Honda CG 160", 160, 40.0);
+
+        // O repositório guarda Veiculo; os três objetos acima são aceitos (polimorfismo).
+        RepositorioVeiculos frota = new RepositorioVeiculos();
+        frota.cadastrar(caminhao);
+        frota.cadastrar(carro);
+        frota.cadastrar(moto);
+
+        // Teste de placa duplicada: "ghi7j89" em minúsculas deve ser reconhecida como "GHI7J89",
+        // pois a placa é normalizada no construtor de Veiculo.
+        try {
+            frota.cadastrar(new Moto("ghi7j89", "Yamaha Factor", 150, 38.0));
+            System.out.println("ERRO: o sistema permitiu placa duplicada!");
+        } catch (IllegalArgumentException e) {
+            System.out.println("SUCESSO: " + e.getMessage());
+        }
+
+        // Polimorfismo + sobrecarga: o mesmo método calcularCustoViagem tem resultado diferente
+        // para cada tipo; a versão com 2 parâmetros soma o pedágio (R$ 25).
+        for (Veiculo v : frota.listarTodos()) {
+            System.out.printf("%s -> viagem de 100 km: R$ %.2f | com pedágio R$ 25: R$ %.2f%n",
+                    v, v.calcularCustoViagem(100), v.calcularCustoViagem(100, 25));
+        }
+
+        // Soma do custo da frota inteira, sem precisar saber o tipo de cada veículo.
+        System.out.printf("Custo de 100 km para a frota inteira: R$ %.2f%n",
+                frota.calcularCustoViagemFrota(100));
+
+        // O caminhão aparece como bloqueado nesse ponto, pois itens vencidos nos testes
+        // anteriores (óleo, filtros etc.) ainda não foram refeitos.
+        System.out.println("Veículos aptos: " + frota.listarAptos().size()
+                + " | bloqueados: " + frota.listarBloqueados().size());
+
+        // Cada tipo imprime seus dados específicos (portas, cilindradas...) no relatório.
+        carro.exibirRelatorioChecagem();
+        moto.exibirRelatorioChecagem();
+
        // TESTE DE CADASTRO E PERSISTENCIA DOS MOTORISTAS
 
         System.out.println("\n>>> TESTE DE MOTORISTAS");

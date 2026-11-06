@@ -1,135 +1,186 @@
 package com.mycompany.gestorfrotaentrega.modelo;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-public class Veiculo {
+/**
+ * REQUISITO DO PROFESSOR (classe abstrata + herança):
+ * Veiculo concentra tudo o que é COMUM a Carro, Caminhao e Moto, e deixa ABSTRATO
+ * o que muda de um tipo para outro. Por ser abstrata, não pode ser instanciada
+ * (não existe "new Veiculo(...)"): só as filhas concretas podem ser criadas.
+ *
+ * Também implementa as interfaces Custeavel e Manutenivel. Como a classe é abstrata,
+ * ela pode deixar alguns métodos dessas interfaces sem corpo, para as filhas implementarem.
+ */
+public abstract class Veiculo implements Custeavel, Manutenivel {
 
-    private String tipo;
-    private String motor;
-    private String combustivel;
-    private double potencia;
-    private double volumeBau;
-    private double cmt;   // Capacidade Máxima de Tração
-    private double consumo;
-    private double tara;  // peso do veículo sem carga
-    private double pbtc;  // Peso Bruto Total Combinado
-    private List<SistemaVeiculo> sistemas;
+    // ===================== ATRIBUTOS =====================
 
-    
-   
-    public Veiculo(String tipo, String motor, String combustivel, double potencia,
-                   double volumeBau, double cmt, double consumo, double tara) {
-        this.tipo = tipo;
-        this.motor = motor;
-        this.combustivel = combustivel;
-        this.potencia = potencia;
-        this.volumeBau = volumeBau;
-        this.cmt = cmt;
-        this.consumo = consumo;
-        this.tara = tara;
-        this.pbtc = tara;
-        this.sistemas = new ArrayList<>();
-        carregarSistemasDoManual();
+    // REQUISITO (atributo final): a placa identifica o veículo e NUNCA muda depois de criado.
+    // Por ser final, só pode receber valor no construtor e não tem setter.
+    private final String placa;
+
+    // REQUISITO (encapsulamento): todos os atributos são PRIVATE. O acesso de fora é feito
+    // apenas por getters/setters, e os setters validam os valores recebidos.
+    private String modelo;               // ex.: "Volvo FH 540 6x4"
+    private String motor;                // descrição do motor
+    private TipoCombustivel combustivel; // REQUISITO (enum): tipo de combustível, não mais String
+    private double potencia;             // potência em cv
+    private double consumo;              // km rodados por unidade de combustível (km/l, km/kWh...)
+    private double quilometragem;        // odômetro: soma de tudo que o veículo já rodou
+
+    // Lista de sistemas (freio, elétrico, pneus...). Cada sistema agrupa itens de checagem.
+    // É final porque a lista em si nunca é trocada; só seu conteúdo muda.
+    private final List<SistemaVeiculo> sistemas = new ArrayList<>();
+
+    // ===================== CONSTRUTORES =====================
+
+    /**
+     * REQUISITO (sobrecarga de construtores) - versão COMPLETA.
+     * Valida a placa aqui e delega o restante para os setters, que já validam cada campo.
+     */
+    public Veiculo(String placa, String modelo, String motor, TipoCombustivel combustivel,
+                   double potencia, double consumo) {
+        // Placa é obrigatória: não aceita null nem texto vazio/só espaços.
+        if (placa == null || placa.trim().isEmpty()) {
+            throw new IllegalArgumentException("A placa é obrigatória.");
+        }
+        // Normaliza: remove espaços e coloca em maiúsculas ("abc1d23 " vira "ABC1D23").
+        // Assim, a busca e a checagem de duplicidade não dependem de como o usuário digitou.
+        this.placa = placa.trim().toUpperCase();
+
+        // Os setters aplicam as validações (modelo obrigatório, consumo > 0, etc.).
+        setModelo(modelo);
+        setMotor(motor);
+        setCombustivel(combustivel);
+        setPotencia(potencia);
+        setConsumo(consumo);
+
+        this.quilometragem = 0; // veículo novo no sistema começa com odômetro zerado
     }
 
-    /** Monta os sistemas e itens definidos no manual de manutenção técnica. */
-    public void carregarSistemasDoManual() {
+    /**
+     * REQUISITO (sobrecarga de construtores) - versão REDUZIDA.
+     * Chama a versão completa via this(...), preenchendo motor e potência com valores padrão.
+     */
+    public Veiculo(String placa, String modelo, TipoCombustivel combustivel, double consumo) {
+        this(placa, modelo, "Não informado", combustivel, 0.0, consumo);
+    }
+
+    // ===================== MÉTODOS ABSTRATOS =====================
+    // Sem corpo: TODA classe filha concreta é obrigada a implementá-los.
+
+    /** Nome do tipo do veículo ("Carro", "Caminhão", "Moto"), usado em relatórios. */
+    public abstract String getTipoVeiculo();
+
+    /**
+     * Monta os sistemas e itens do manual de manutenção. Cada tipo de veículo tem
+     * um manual diferente, por isso o método é abstrato.
+     */
+    public abstract void carregarSistemasDoManual();
+
+    // Os dois métodos abaixo vêm da interface Custeavel e continuam abstratos aqui.
+    // O @Override + abstract deixa explícito que a decisão fica para as filhas.
+
+    /** Custo da viagem: a fórmula muda conforme o tipo (eixos, cilindrada, etc.). */
+    @Override
+    public abstract double calcularCustoViagem(double km);
+
+    /** Custo de manutenção por km: valor diferente para carro, moto e caminhão. */
+    @Override
+    public abstract double calcularCustoManutencaoPorKm();
+
+    // ===================== CÁLCULO DE CUSTOS (comuns a todos) =====================
+
+    /**
+     * Custo de combustível de uma viagem, usando o preço de referência do enum.
+     * Delega para a versão sobrecarregada logo abaixo.
+     */
+    public double calcularCustoCombustivel(double km) {
+        return calcularCustoCombustivel(km, combustivel.getPrecoReferencia());
+    }
+
+    /**
+     * REQUISITO (sobrecarga de métodos): mesmo nome, parâmetros diferentes.
+     * Esta versão permite informar o preço do combustível (ex.: preço real do posto).
+     *
+     * Fórmula: (km / consumo) * preço  ->  litros gastos x preço por litro.
+     */
+    public double calcularCustoCombustivel(double km, double precoPorUnidade) {
+        validarKm(km);
+        if (precoPorUnidade < 0) {
+            throw new IllegalArgumentException("Preço do combustível não pode ser negativo.");
+        }
+        return (km / consumo) * precoPorUnidade;
+    }
+
+    /**
+     * REQUISITO (sobrecarga de métodos): viagem COM pedágio.
+     * Reaproveita calcularCustoViagem(km), que é abstrato: cada tipo calcula do seu jeito
+     * e aqui apenas somamos o pedágio (polimorfismo).
+     */
+    public double calcularCustoViagem(double km, double pedagio) {
+        if (pedagio < 0) {
+            throw new IllegalArgumentException("Pedágio não pode ser negativo.");
+        }
+        return calcularCustoViagem(km) + pedagio;
+    }
+
+    /**
+     * Validação reutilizada pelos cálculos. É "protected" para que as filhas também possam usar.
+     */
+    protected void validarKm(double km) {
+        if (km < 0) {
+            throw new IllegalArgumentException("Quilometragem não pode ser negativa.");
+        }
+    }
+
+    // ===================== MANUTENÍVEL (implementação da interface) =====================
+
+    /** Permite que as filhas montem sua lista de sistemas (protected: só subclasses usam). */
+    protected void adicionarSistema(SistemaVeiculo sistema) {
+        sistemas.add(sistema);
+    }
+
+    /** Esvazia a lista antes de recarregar o manual, evitando sistemas duplicados. */
+    protected void limparSistemas() {
         sistemas.clear();
-
-        SistemaVeiculo freio = new SistemaVeiculo("Sistema de Freio");
-        freio.add(new ItemChecagem("Lonas de freio"));
-        freio.add(new ItemChecagem("Secador de ar"));
-        sistemas.add(freio);
-
-        SistemaVeiculo eletrico = new SistemaVeiculo("Sistema Elétrico");
-        eletrico.add(new ItemChecagem("Baterias"));
-        eletrico.add(new ItemChecagem("Fusíveis e relés"));
-        eletrico.add(new ItemChecagem("Motor de arranque"));
-        eletrico.add(new ItemChecagem("Diodo"));
-        eletrico.add(new ItemChecagem("Luzes"));
-        eletrico.add(new ItemChecagem("Transparência das lanternas"));
-        eletrico.add(new ItemChecagem("Controle remoto"));
-        eletrico.add(new ItemChecagem("Alarme"));
-        sistemas.add(eletrico);
-
-        SistemaVeiculo rodas = new SistemaVeiculo("Rodas e Pneus");
-        rodas.add(new ItemChecagem("Pneu"));
-        rodas.add(new ItemChecagem("Rodas"));
-        rodas.add(new ItemChecagem("Alinhamento"));
-        rodas.add(new ItemChecagem("Balanceamento"));
-        sistemas.add(rodas);
-
-        SistemaVeiculo combustivelSis = new SistemaVeiculo("Sistema de Combustível");
-        combustivelSis.add(new ItemChecagem("Bomba de combustível"));
-        combustivelSis.add(new ItemChecagem("Boia"));
-        sistemas.add(combustivelSis);
-
-        SistemaVeiculo arrefecimento = new SistemaVeiculo("Sistema de Arrefecimento e Acessórios");
-        arrefecimento.add(new ItemChecagem("Sistema de arrefecimento"));
-        sistemas.add(arrefecimento);
-        
-        SistemaVeiculo acessorio = new SistemaVeiculo("Acessórios");
-        acessorio.add(new ItemChecagem("Palheta do limpador"));
-        sistemas.add(acessorio);
-
-        SistemaVeiculo lubrificacao = new SistemaVeiculo("Lubrificação, Filtros e Manutenções Periódicas");
-        lubrificacao.add(new ItemChecagem("Óleo do Motor", 40000, 12));
-        lubrificacao.add(new ItemChecagem("Óleo da Caixa de Mudança", 40000, 24));
-        lubrificacao.add(new ItemChecagem("Óleo do Eixo Traseiro", 40000, 24));
-        lubrificacao.add(new ItemChecagem("Óleo da Direção Assistiva", 20000, 12));
-        lubrificacao.add(new ItemChecagem("Óleo da Bomba para Basculação da Cabine", 20000, 12));
-        sistemas.add(lubrificacao);
-        
-        SistemaVeiculo filtro = new SistemaVeiculo("Filtros");
-        filtro.add(new ItemChecagem("Filtro de Ar", 10000, 6));
-        filtro.add(new ItemChecagem("Filtro de Combustível", 10000, 6));
-        filtro.add(new ItemChecagem("Filtro de Cabine", 10000, 6));
-        filtro.add(new ItemChecagem("Filtro de Óleo", 10000, 6));
-        sistemas.add(filtro);
-        
-        SistemaVeiculo periodicogeral = new SistemaVeiculo("Periodicos Gerais");
-        periodicogeral.add(new ItemChecagem("Correia de Transmissão", 30000, 18));
-        periodicogeral.add(new ItemChecagem("Limpeza do Ar Condicionado", 15000, 12));
-        sistemas.add(periodicogeral);
-        
-    }
-
-    /** Atualiza o PBTC (tara + carga) e alerta se ultrapassar a CMT. */
-    public void carregarVeiculo(double pesoCargaKilos) {
-        if (pesoCargaKilos < 0) {
-            System.out.println("Aviso: peso de carga negativo ignorado.");
-            return;
-        }
-        this.pbtc = tara + pesoCargaKilos;
-        if (pbtc > cmt) {
-            System.out.printf("[ALERTA] PBTC (%.1f kg) ultrapassa a CMT (%.1f kg) em %.1f kg!%n",
-                    pbtc, cmt, pbtc - cmt);
-        }
     }
 
     /** O veículo só é apto se TODOS os itens de TODOS os sistemas estiverem aptos. */
+    @Override
     public boolean isApto() {
         for (SistemaVeiculo sistema : sistemas) {
             if (!sistema.isSistemaApto()) {
-                return false;
+                return false; // basta um sistema pendente para bloquear o veículo
             }
         }
         return true;
     }
 
-    /** Incrementa a rodagem nos itens de manutenção periódica (os que possuem limites). */
+    /**
+     * Soma a rodagem ao odômetro e repassa o uso aos itens de manutenção periódica.
+     * Itens sem limites (ex.: "Luzes") são ignorados, pois não vencem por km/tempo.
+     */
+    @Override
     public void rodar(double km, int meses) {
+        if (km < 0 || meses < 0) {
+            System.out.println("Aviso: valores de rodagem negativos ignorados.");
+            return; // não altera nada em caso de valor inválido
+        }
+        quilometragem += km;
         for (SistemaVeiculo sistema : sistemas) {
             for (ItemChecagem item : sistema.getItens()) {
                 if (item.possuiLimites()) {
-                    item.registrarUso(km, meses);
+                    item.registrarUso(km, meses); // pode reprovar o item automaticamente
                 }
             }
         }
     }
 
-    /** Busca um item pelo nome (ignorando maiúsculas/minúsculas). Retorna null se não existir. */
+    /** Busca um item pelo nome, ignorando maiúsculas/minúsculas. Retorna null se não existir. */
+    @Override
     public ItemChecagem buscarItem(String nomeItem) {
         for (SistemaVeiculo sistema : sistemas) {
             for (ItemChecagem item : sistema.getItens()) {
@@ -138,17 +189,40 @@ public class Veiculo {
                 }
             }
         }
-        return null;
+        return null; // percorreu tudo e não achou
     }
 
+    /** Monta a lista de itens reprovados/vencidos, percorrendo todos os sistemas. */
+    @Override
+    public List<ItemChecagem> listarItensPendentes() {
+        List<ItemChecagem> pendentes = new ArrayList<>();
+        for (SistemaVeiculo sistema : sistemas) {
+            for (ItemChecagem item : sistema.getItens()) {
+                if (!item.isApto()) {
+                    pendentes.add(item);
+                }
+            }
+        }
+        return pendentes;
+    }
+
+    /**
+     * Gancho (hook) para POLIMORFISMO: por padrão não imprime nada. Cada filha sobrescreve
+     * para mostrar seus dados específicos (portas, eixos, cilindradas...) dentro do relatório.
+     */
+    protected void exibirDadosEspecificos() { }
+
+    /** Imprime o relatório completo: dados gerais, dados do tipo e situação de cada sistema. */
+    @Override
     public void exibirRelatorioChecagem() {
         System.out.println("==================================================================");
-        System.out.println("        RELATÓRIO DE CHECAGEM");
+        System.out.println("        RELATÓRIO DE CHECAGEM - " + getTipoVeiculo().toUpperCase());
         System.out.println("==================================================================");
-        System.out.printf("Tipo: %s | Motor: %s | Combustível: %s%n", tipo, motor, combustivel);
-        System.out.printf("Potência: %.1f cv | Volume do baú: %.1f m³ | Consumo: %.1f km/l%n",
-                potencia, volumeBau, consumo);
-        System.out.printf("Tara: %.1f kg | PBTC: %.1f kg | CMT: %.1f kg%n", tara, pbtc, cmt);
+        System.out.printf("Placa: %s | Modelo: %s | Motor: %s%n", placa, modelo, motor);
+        System.out.printf("Combustível: %s | Potência: %.1f cv | Consumo: %.1f km/%s%n",
+                combustivel, potencia, consumo, combustivel.getUnidade());
+        System.out.printf("Quilometragem: %.0f km%n", quilometragem);
+        exibirDadosEspecificos(); // chamada polimórfica: executa a versão da filha
         System.out.println("Situação geral: " + (isApto() ? "APTO" : "NÃO APTO (BLOQUEADO)"));
         System.out.println("------------------------------------------------------------------");
 
@@ -156,40 +230,65 @@ public class Veiculo {
             System.out.println("\n> " + sistema.getNomeSistema().toUpperCase()
                     + " - " + (sistema.isSistemaApto() ? "OK" : "PENDENTE"));
             for (ItemChecagem item : sistema.getItens()) {
-                System.out.println("   - " + item);
+                System.out.println("   - " + item); // usa ItemChecagem.toString()
             }
         }
         System.out.println("==================================================================\n");
     }
 
-    // Getters e Setters
-    public String getTipo() { return tipo; }
-    public void setTipo(String tipo) { this.tipo = tipo; }
+    /** Resumo de uma linha, ex.: "Moto [GHI7J89] Honda CG 160 - APTO". */
+    @Override
+    public String toString() {
+        return String.format("%s [%s] %s - %s", getTipoVeiculo(), placa, modelo,
+                isApto() ? "APTO" : "BLOQUEADO");
+    }
+
+    // ===================== GETTERS E SETTERS (encapsulamento com validação) =====================
+
+    // Sem setter: atributo final, definido uma única vez no construtor.
+    public String getPlaca() { return placa; }
+
+    public String getModelo() { return modelo; }
+    public void setModelo(String modelo) {
+        if (modelo == null || modelo.trim().isEmpty()) {
+            throw new IllegalArgumentException("O modelo é obrigatório.");
+        }
+        this.modelo = modelo.trim();
+    }
 
     public String getMotor() { return motor; }
-    public void setMotor(String motor) { this.motor = motor; }
+    // Motor é opcional: se vier null, usa o texto padrão.
+    public void setMotor(String motor) { this.motor = (motor == null) ? "Não informado" : motor; }
 
-    public String getCombustivel() { return combustivel; }
-    public void setCombustivel(String combustivel) { this.combustivel = combustivel; }
+    public TipoCombustivel getCombustivel() { return combustivel; }
+    public void setCombustivel(TipoCombustivel combustivel) {
+        if (combustivel == null) {
+            throw new IllegalArgumentException("O tipo de combustível é obrigatório.");
+        }
+        this.combustivel = combustivel;
+    }
 
     public double getPotencia() { return potencia; }
-    public void setPotencia(double potencia) { this.potencia = potencia; }
-
-    public double getVolumeBau() { return volumeBau; }
-    public void setVolumeBau(double volumeBau) { this.volumeBau = volumeBau; }
-
-    public double getCmt() { return cmt; }
-    public void setCmt(double cmt) { this.cmt = cmt; }
+    public void setPotencia(double potencia) {
+        if (potencia < 0) {
+            throw new IllegalArgumentException("Potência não pode ser negativa.");
+        }
+        this.potencia = potencia;
+    }
 
     public double getConsumo() { return consumo; }
-    public void setConsumo(double consumo) { this.consumo = consumo; }
+    public void setConsumo(double consumo) {
+        // Precisa ser > 0, pois é usado como divisor em calcularCustoCombustivel (evita divisão por zero).
+        if (consumo <= 0) {
+            throw new IllegalArgumentException("Consumo deve ser maior que zero.");
+        }
+        this.consumo = consumo;
+    }
 
-    public double getTara() { return tara; }
-    public void setTara(double tara) { this.tara = tara; }
+    // Sem setter: o odômetro só aumenta pelo método rodar().
+    public double getQuilometragem() { return quilometragem; }
 
-    public double getPbtc() { return pbtc; }
-    public void setPbtc(double pbtc) { this.pbtc = pbtc; }
-
-    public List<SistemaVeiculo> getSistemas() { return sistemas; }
-    public void setSistemas(List<SistemaVeiculo> sistemas) { this.sistemas = sistemas; }
+    // Devolve uma visão SOMENTE LEITURA: quem chama não consegue adicionar/remover sistemas
+    // por fora, o que preserva o encapsulamento.
+    public List<SistemaVeiculo> getSistemas() { return Collections.unmodifiableList(sistemas); }
 }
