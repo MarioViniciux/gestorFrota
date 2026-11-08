@@ -6,7 +6,7 @@ package com.mycompany.gestorfrotaentrega.modelo;
 
 import java.time.LocalDate;
 import java.util.Set;
-import java.util.HashSet;
+import java.util.EnumSet;
 
         
 public class Motorista extends Pessoa implements Persistivel{
@@ -28,8 +28,8 @@ public class Motorista extends Pessoa implements Persistivel{
             throw new IllegalArgumentException("O motorista deve ter pelo menos uma categoria valida.");
         }
         
-        //Cria uma copia com as categorias informadas
-        this.tiposCNH = new HashSet<>(pTipoCNH); 
+        //Cria uma copia das categorias utilizando EnumSet
+        this.tiposCNH = EnumSet.copyOf(pTipoCNH); 
         
         setValidadeCNH(pValidadeCNH);
         setAtivo(pAtivo); 
@@ -65,7 +65,7 @@ public class Motorista extends Pessoa implements Persistivel{
     }
     
     public Set<CategoriaCNH> getTiposCNH(){
-        return new HashSet<>(tiposCNH);
+        return EnumSet.copyOf(tiposCNH);
     }
     
     public LocalDate getValidadeCNH(){
@@ -149,8 +149,8 @@ public class Motorista extends Pessoa implements Persistivel{
         //Converte o texto das categorias em um conjunto de categorias CNH
         public static Set<CategoriaCNH>lerCategorias(String texto){
             
-            //Cria um conjunto vazio para armazenar as categorias
-            Set<CategoriaCNH> categorias = new HashSet<>();
+            //Cria um conjunto EnumSet inicialmente vazio para armazenar as categorias
+            Set<CategoriaCNH> categorias = EnumSet.noneOf(CategoriaCNH.class);
             
             //Separa as categorias utilizando uma virgula
             String[] partes = texto.split(",");
