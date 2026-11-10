@@ -6,7 +6,7 @@ public class Carga {
     private final String descricao;
     private final double peso; 
 
-    public Carga (String descricao, float peso){
+    public Carga (String descricao, double peso){
         if(descricao == null || descricao.trim().isEmpty()){
             throw new IllegalArgumentException("A Descrição de carga é obrigatória");   
         }

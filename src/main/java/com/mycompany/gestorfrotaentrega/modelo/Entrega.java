@@ -12,23 +12,21 @@ public class Entrega implements Persistivel{
     private final double distanciaKm;
     private final double valor; 
     
-    public Entrega(Veiculo veiculo, Motorista motorista, String destino, String descricaoCarga, float pesoCarga, double distanciaKm, double valor)throws EntregaInvalidaException{
+    public Entrega(Veiculo veiculo, Motorista motorista, String descricaoCarga, double pesoCarga, double distanciaKm, double valor) throws EntregaInvalidaException{
     
-        if(veiculo == null || motorista ==null){
-            throw new EntregaInvalidaException("Veículo e motorista são obrigatórios.");
-        }
-        if(destino == null || destino.trim().isEmpty()){
-            throw new EntregaInvalidaException("O destino não pode ser vazio");
+        if(veiculo == null || motorista == null){
+            throw new IllegalArgumentException("Veículo e motorista são obrigatórios.");
         }
         if(distanciaKm <= 0){
-            throw new EntregaInvalidaException("Valor inválido, a distância precisa ser maior que zero");
+            throw new IllegalArgumentException("Valor inválido, a distância precisa ser maior que zero");
         }
         this.veiculo = veiculo;
         this.motorista = motorista;
         this.carga = new Carga(descricaoCarga, pesoCarga);
         this.distanciaKm = distanciaKm;
-        this.valor  = valor;
+        this.valor = valor;
     }
+    
     //2.1 Métodos (argumentos variados) varargs(...)//
     public double calcularCustosAdicionais( double... custosExtras){
         double totalCustos = 0;
