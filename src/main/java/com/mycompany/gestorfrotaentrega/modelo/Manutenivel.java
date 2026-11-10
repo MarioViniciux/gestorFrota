@@ -1,4 +1,4 @@
-package com.mycompany.gestorfrotaentrega.modelo;
+package com.mycompany.gestorfrotaentrega.modelo; // 9: pacote 'modelo' (o projeto tem exatamente 2 pacotes: modelo e aplicacao)
 
 import java.util.List;
 
@@ -9,6 +9,7 @@ import java.util.List;
  * Fica separada de Custeavel de propósito (princípio da segregação de interfaces):
  * cada contrato trata de uma única responsabilidade (custo x manutenção).
  */
+// 8: interface implementada por Veiculo (e suas filhas); sem construtores
 public interface Manutenivel {
 
     /** @return true somente se TODOS os itens de checagem estiverem aptos. */

@@ -1,9 +1,11 @@
-package com.mycompany.gestorfrotaentrega.modelo;
+package com.mycompany.gestorfrotaentrega.modelo; // 9: pacote 'modelo' (o projeto tem exatamente 2 pacotes: modelo e aplicacao)
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Frota {
+    // 1.1: atributos private (encapsulamento)
+    // 1.4: atributos do tipo ArrayList
     private final ArrayList<Veiculo> veiculos = new ArrayList<>();
     private final ArrayList<Motorista> motoristas = new ArrayList<>();
     private final ArrayList<Entrega> entregas = new ArrayList<>();
@@ -60,6 +62,7 @@ public class Frota {
         return List.copyOf(entregas);
     }
 
+    // 2.2: método estático (não é o main), usado em motivoInaptidao()
     public static double capacidadeKg(Veiculo veiculo) {
         if (veiculo instanceof Caminhao caminhao) {
             return caminhao.getCmt() - caminhao.getTara();
@@ -73,6 +76,7 @@ public class Frota {
         return 0;
     }
 
+    // 2.2: método estático (não é o main), usado em podeDirigir()
     public static List<CategoriaCNH> categoriasExigidas(Veiculo veiculo) {
         if (veiculo instanceof Caminhao) {
             return List.of(CategoriaCNH.C, CategoriaCNH.E);
@@ -126,22 +130,27 @@ public class Frota {
     }
 
     public double orcamento(Veiculo veiculo, double distanciaKm) {
+        // 1.5: usa a constante TAXA_ADMINISTRATIVA declarada na classe Entrega
         return veiculo.calcularCustoViagem(distanciaKm) * (1 + Entrega.TAXA_ADMINISTRATIVA);
     }
 
     public Entrega atribuirEntrega(Veiculo veiculo, Motorista motorista, String descricao,
                                    double pesoKg, double distanciaKm) throws EntregaInvalidaException {
         if (pesoKg <= 0 || distanciaKm <= 0) {
+            // 11: exceção criada pelo sistema, levantada aqui (throw)
             throw new EntregaInvalidaException("Peso e distância devem ser maiores que zero.");
         }
         String motivo = motivoInaptidao(veiculo, pesoKg);
         if (motivo != null) {
+            // 11: exceção levantada (throw)
             throw new EntregaInvalidaException("Veículo " + veiculo.getPlaca() + ": " + motivo + ".");
         }
         if (!podeDirigir(motorista, veiculo)) {
+            // 11: exceção levantada (throw)
             throw new EntregaInvalidaException("Motorista " + motorista.getNome()
                     + " indisponível ou sem CNH adequada para " + veiculo.getTipoVeiculo() + ".");
         }
+        // 4 e 5: usa o construtor de Entrega (agrega Veiculo e Motorista; compõe a Carga)
         Entrega entrega = new Entrega(veiculo, motorista, descricao, pesoKg, distanciaKm,
                 orcamento(veiculo, distanciaKm));
         veiculo.rodar(distanciaKm, 0); 

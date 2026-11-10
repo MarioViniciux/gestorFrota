@@ -1,4 +1,4 @@
-package com.mycompany.gestorfrotaentrega.modelo;
+package com.mycompany.gestorfrotaentrega.modelo; // 9: pacote 'modelo' (o projeto tem exatamente 2 pacotes: modelo e aplicacao)
 
 /**
  * REQUISITO DO PROFESSOR (enum):
@@ -9,6 +9,7 @@ package com.mycompany.gestorfrotaentrega.modelo;
  * Em Java, um enum é uma classe especial: cada constante abaixo é um objeto único,
  * criado uma única vez pelo construtor do enum.
  */
+// 1.3: enumeração criada para o sistema, usada como atributo de Veiculo
 public enum TipoCombustivel {
 
     // Cada constante chama o construtor: (descrição, unidade de medida, preço por unidade em R$).

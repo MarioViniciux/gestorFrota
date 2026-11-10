@@ -1,10 +1,11 @@
-package com.mycompany.gestorfrotaentrega.modelo;
+package com.mycompany.gestorfrotaentrega.modelo; // 9: pacote 'modelo' (o projeto tem exatamente 2 pacotes: modelo e aplicacao)
 
 /**
  * REQUISITO DO PROFESSOR (herança):
  * Caminhao ESPECIALIZA Veiculo. Os atributos de carga (CMT, tara, PBTC, volume do baú)
  * saíram da classe genérica Veiculo, pois só fazem sentido para caminhões.
  */
+// 10: classe concreta da classe abstrata Veiculo (implementa todos os métodos abstratos)
 public class Caminhao extends Veiculo {
 
     // Custo de desgaste por km = base + (valor por eixo x número de eixos).
@@ -12,6 +13,7 @@ public class Caminhao extends Veiculo {
     private static final double CUSTO_BASE_POR_KM = 0.60;
     private static final double CUSTO_POR_EIXO_POR_KM = 0.10;
 
+    // 1.1: atributos private (encapsulamento)
     private double volumeBau;    // capacidade do baú em m³
     private double cmt;          // Capacidade Máxima de Tração, em kg
     private final double tara;   // REQUISITO (final): peso do veículo vazio, não muda nunca
@@ -21,6 +23,7 @@ public class Caminhao extends Veiculo {
     /**
      * REQUISITO (sobrecarga de construtores) - versão COMPLETA.
      */
+    // 3: construtor declarado | 7.1: polimorfismo de sobrecarga (2 construtores)
     public Caminhao(String placa, String modelo, String motor, TipoCombustivel combustivel,
                     double potencia, double consumo, double volumeBau, double cmt,
                     double tara, int numeroEixos) {
@@ -43,6 +46,7 @@ public class Caminhao extends Veiculo {
      * REQUISITO (sobrecarga de construtores) - versão SIMPLES.
      * Assume diesel, 3 eixos (6x4), motor e potência não informados.
      */
+    // 7.1: polimorfismo de sobrecarga de construtor
     public Caminhao(String placa, String modelo, double consumo, double volumeBau,
                     double cmt, double tara) {
         this(placa, modelo, "Não informado", TipoCombustivel.DIESEL, 0.0, consumo,
@@ -57,6 +61,7 @@ public class Caminhao extends Veiculo {
      * existia na classe Veiculo original). Itens com (nome, km, meses) são periódicos:
      * são reprovados automaticamente ao atingir um dos dois limites.
      */
+    // 10: implementação do método abstrato carregarSistemasDoManual() de Veiculo
     @Override
     public void carregarSistemasDoManual() {
         limparSistemas();
@@ -127,6 +132,7 @@ public class Caminhao extends Veiculo {
      *
      * @param pesoCargaKilos peso da carga em kg (valor negativo é ignorado)
      */
+    // 7.1: polimorfismo de sobrecarga (carregarVeiculo com 1 e com 2 parâmetros)
     public void carregarVeiculo(double pesoCargaKilos) {
         if (pesoCargaKilos < 0) {
             System.out.println("Aviso: peso de carga negativo ignorado.");
@@ -143,6 +149,7 @@ public class Caminhao extends Veiculo {
      * REQUISITO (sobrecarga de métodos): mesmo nome, dois parâmetros.
      * Carrega a carga principal mais uma carga extra, reaproveitando a versão de 1 parâmetro.
      */
+    // 7.1: polimorfismo de sobrecarga (versão com carga extra)
     public void carregarVeiculo(double pesoCargaKilos, double cargaExtraKilos) {
         carregarVeiculo(pesoCargaKilos + cargaExtraKilos);
     }

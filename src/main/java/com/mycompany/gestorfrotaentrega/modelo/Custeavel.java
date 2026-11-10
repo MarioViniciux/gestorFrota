@@ -1,4 +1,4 @@
-package com.mycompany.gestorfrotaentrega.modelo;
+package com.mycompany.gestorfrotaentrega.modelo; // 9: pacote 'modelo' (o projeto tem exatamente 2 pacotes: modelo e aplicacao)
 
 /**
  * REQUISITO DO PROFESSOR (interface):
@@ -8,6 +8,7 @@ package com.mycompany.gestorfrotaentrega.modelo;
  * Quem USA a interface (ex.: RepositorioVeiculos) só precisa saber que o objeto é
  * "Custeavel", sem se preocupar se é um Carro, uma Moto ou um Caminhão.
  */
+// 8: interface implementada por Veiculo (e suas filhas); sem get/set nem construtores
 public interface Custeavel {
 
     /**
