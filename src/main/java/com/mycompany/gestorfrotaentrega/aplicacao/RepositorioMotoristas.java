@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package com.mycompany.gestorfrotaentrega.aplicacao;
+package com.mycompany.gestorfrotaentrega.aplicacao; // 9: pacote 'aplicacao' (o projeto tem exatamente 2 pacotes: modelo e aplicacao)
 
 import com.mycompany.gestorfrotaentrega.modelo.CategoriaCNH;
 import com.mycompany.gestorfrotaentrega.modelo.Motorista;
@@ -12,12 +12,15 @@ import java.util.Set;
 import java.util.ArrayList;
 import java.io.IOException;
 
+// 10: classe concreta da classe abstrata Repositorio
 public class RepositorioMotoristas extends Repositorio<Motorista>{
     
+    // 3: construtor declarado
     public RepositorioMotoristas(){
         super("motoristas.txt");
     }
     
+    // 10: implementa o método abstrato converter() | 13: reconstrói o Motorista a partir de uma linha lida do arquivo
     @Override
     protected Motorista converter(String linha){
         
