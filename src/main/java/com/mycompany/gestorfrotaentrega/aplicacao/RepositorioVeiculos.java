@@ -1,7 +1,14 @@
 package com.mycompany.gestorfrotaentrega.aplicacao;
 
+import com.mycompany.gestorfrotaentrega.modelo.Caminhao;
+import com.mycompany.gestorfrotaentrega.modelo.Carro;
+import com.mycompany.gestorfrotaentrega.modelo.ItemChecagem;
+import com.mycompany.gestorfrotaentrega.modelo.Moto;
+import com.mycompany.gestorfrotaentrega.modelo.SistemaVeiculo;
+import com.mycompany.gestorfrotaentrega.modelo.TipoCombustivel;
 import com.mycompany.gestorfrotaentrega.modelo.Veiculo;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -12,9 +19,15 @@ import java.util.Map;
  *
  * Trabalha sempre com o tipo abstrato Veiculo (POLIMORFISMO): a mesma lista guarda
  * Carro, Caminhao e Moto, e o repositório não precisa saber qual é qual.
- * Obs.: diferente de RepositorioMotoristas, este não grava em arquivo (não há IOException).
+ * Estende Repositorio<Veiculo> para ler/gravar veiculos.txt (Veiculo implementa Persistivel),
+ * mas mantém os veículos em memória, num mapa, e só grava quando salvar() é chamado.
  */
-public class RepositorioVeiculos {
+public class RepositorioVeiculos extends Repositorio<Veiculo> {
+
+    /** Arquivo de registro dos veículos (uma linha por veículo, campos separados por ';'). */
+    public RepositorioVeiculos() {
+        super("veiculos.txt");
+    }
 
     // Placa -> veículo. LinkedHashMap mantém a ORDEM DE CADASTRO ao listar,
     // e a busca por chave é rápida (não precisa varrer a lista inteira).
@@ -110,4 +123,74 @@ public class RepositorioVeiculos {
 
     /** Quantidade de veículos cadastrados. */
     public int total() { return veiculos.size(); }
+
+    // ===================== PERSISTÊNCIA EM ARQUIVO =====================
+
+    /**
+     * Grava todos os veículos cadastrados em veiculos.txt (sobrescreve o arquivo).
+     * Usa o salvar(List) herdado de Repositorio, que chama Veiculo.paraLinha() (Persistivel).
+     * carregar() também é herdado: lê o arquivo e devolve os veículos (não os cadastra aqui);
+     * linhas em branco ou inválidas são ignoradas.
+     */
+    public void salvar() throws IOException {
+        salvar(listarTodos());
+    }
+
+    private void restaurarEstado(Veiculo v, String km, String estado) {
+        v.restaurarQuilometragem(Double.parseDouble(km));
+        List<ItemChecagem> itens = new ArrayList<>();
+        for (SistemaVeiculo sistema : v.getSistemas()) {
+            itens.addAll(sistema.getItens());
+        }
+        String[] partes = estado.isEmpty() ? new String[0] : estado.split("\\|");
+        if (partes.length != itens.size()) {
+            return; // manual mudou desde a gravação: mantém os itens como novos
+        }
+        for (int i = 0; i < partes.length; i++) {
+            String[] campos = partes[i].split(",");
+            itens.get(i).setApto(Boolean.parseBoolean(campos[0]));
+            itens.get(i).setKilometrosDeUso(Float.parseFloat(campos[1]));
+            itens.get(i).setTempoDeUsoMeses(Integer.parseInt(campos[2]));
+        }
+    }
+
+    /**
+     * Gancho de Repositorio: transforma UMA linha do arquivo em Veiculo (Carro, Moto ou Caminhão),
+     * restaurando também a quilometragem, o estado dos itens e a carga máxima.
+     */
+    @Override
+    protected Veiculo converter(String linha) {
+        String[] d = linha.split(";", -1);
+        Veiculo v = criar(d);
+        int pos = d[0].equals("Caminhão") ? 11 : 9; // primeiro campo após os dados específicos
+        if (d.length >= pos + 2) {
+            restaurarEstado(v, d[pos], d[pos + 1]);
+        }
+        if (d.length >= pos + 3 && !d[pos + 2].isBlank()) {
+            double cap = Double.parseDouble(d[pos + 2]);
+            if (v instanceof Carro c) c.setCapacidadeCargaKg(cap);
+            else if (v instanceof Moto m) m.setCapacidadeCargaKg(cap);
+        }
+        return v;
+    }
+
+    private Veiculo criar(String[] d) {
+        TipoCombustivel comb = TipoCombustivel.valueOf(d[4]);
+        double potencia = Double.parseDouble(d[5]);
+        double consumo = Double.parseDouble(d[6]);
+        switch (d[0]) {
+            case "Caminhão":
+                return new Caminhao(d[1], d[2], d[3], comb, potencia, consumo,
+                        Double.parseDouble(d[7]), Double.parseDouble(d[8]),
+                        Double.parseDouble(d[9]), Integer.parseInt(d[10]));
+            case "Carro":
+                return new Carro(d[1], d[2], d[3], comb, potencia, consumo,
+                        Integer.parseInt(d[7]), Double.parseDouble(d[8]));
+            case "Moto":
+                return new Moto(d[1], d[2], d[3], comb, potencia, consumo,
+                        Integer.parseInt(d[7]), Boolean.parseBoolean(d[8]));
+            default:
+                throw new IllegalArgumentException("Tipo desconhecido: " + d[0]);
+        }
+    }
 }

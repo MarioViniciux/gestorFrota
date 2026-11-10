@@ -14,17 +14,30 @@ public class Carro extends Veiculo {
     // Atributos específicos do carro (privados: encapsulamento).
     private int numeroPortas;
     private double volumePortaMalas; // em litros
+    private double capacidadeCargaKg; // carga máxima permitida, em kg
+
+    /** Capacidade assumida quando não informada (cadastros antigos e construtor simples). */
+    public static final double CAPACIDADE_PADRAO_KG = 500;
 
     /**
      * REQUISITO (sobrecarga de construtores) - versão COMPLETA.
      * super(...) chama o construtor da classe-pai para preencher os dados comuns.
      */
     public Carro(String placa, String modelo, String motor, TipoCombustivel combustivel,
-                 double potencia, double consumo, int numeroPortas, double volumePortaMalas) {
+                 double potencia, double consumo, int numeroPortas, double volumePortaMalas,
+                 double capacidadeCargaKg) {
         super(placa, modelo, motor, combustivel, potencia, consumo); // sempre a 1ª linha
         setNumeroPortas(numeroPortas);           // usa o setter para validar
         setVolumePortaMalas(volumePortaMalas);
+        setCapacidadeCargaKg(capacidadeCargaKg);
         carregarSistemasDoManual();              // monta o checklist deste tipo de veículo
+    }
+
+    /** Versão sem capacidade de carga: assume {@link #CAPACIDADE_PADRAO_KG}. */
+    public Carro(String placa, String modelo, String motor, TipoCombustivel combustivel,
+                 double potencia, double consumo, int numeroPortas, double volumePortaMalas) {
+        this(placa, modelo, motor, combustivel, potencia, consumo, numeroPortas, volumePortaMalas,
+                CAPACIDADE_PADRAO_KG);
     }
 
     /**
@@ -49,20 +62,20 @@ public class Carro extends Veiculo {
         limparSistemas(); // evita duplicar sistemas se o método for chamado de novo
 
         SistemaVeiculo freio = new SistemaVeiculo("Sistema de Freio");
-        freio.add(new ItemChecagem("Pastilhas de freio"));
-        freio.add(new ItemChecagem("Discos de freio"));
+        freio.add(new ItemChecagem("Pastilhas de freio", 30000, 24));
+        freio.add(new ItemChecagem("Discos de freio", 60000, 48));
         adicionarSistema(freio);
 
         SistemaVeiculo eletrico = new SistemaVeiculo("Sistema Elétrico");
-        eletrico.add(new ItemChecagem("Bateria"));
-        eletrico.add(new ItemChecagem("Luzes"));
-        eletrico.add(new ItemChecagem("Motor de arranque"));
+        eletrico.add(new ItemChecagem("Bateria", 60000, 36));
+        eletrico.add(new ItemChecagem("Luzes", 80000, 48));
+        eletrico.add(new ItemChecagem("Motor de arranque", 150000, 96));
         adicionarSistema(eletrico);
 
         SistemaVeiculo rodas = new SistemaVeiculo("Rodas e Pneus");
-        rodas.add(new ItemChecagem("Pneus"));
-        rodas.add(new ItemChecagem("Alinhamento"));
-        rodas.add(new ItemChecagem("Balanceamento"));
+        rodas.add(new ItemChecagem("Pneus", 40000, 48));
+        rodas.add(new ItemChecagem("Alinhamento", 10000, 12));
+        rodas.add(new ItemChecagem("Balanceamento", 10000, 12));
         adicionarSistema(rodas);
 
         // Itens periódicos: (nome, limite em km, limite em meses)
@@ -81,13 +94,21 @@ public class Carro extends Veiculo {
     /** Custeavel: custo da viagem = combustível (método do pai) + desgaste proporcional aos km. */
     @Override
     public double calcularCustoViagem(double km) {
-        return calcularCustoCombustivel(km) + km * calcularCustoManutencaoPorKm();
+        return somarCustos(calcularCustoCombustivel(km), km * calcularCustoManutencaoPorKm());
     }
+
+    /** Persistência: portas e porta-malas; a carga máxima vai no fim da linha. */
+    @Override
+    protected String camposEspecificos() { return numeroPortas + ";" + volumePortaMalas; }
+
+    @Override
+    protected String camposFinais() { return String.valueOf(capacidadeCargaKg); }
 
     /** Sobrescreve o gancho do pai para incluir dados do carro no relatório. */
     @Override
     protected void exibirDadosEspecificos() {
-        System.out.printf("Portas: %d | Porta-malas: %.0f L%n", numeroPortas, volumePortaMalas);
+        System.out.printf("Portas: %d | Porta-malas: %.0f L | Carga máx.: %.0f kg%n",
+                numeroPortas, volumePortaMalas, capacidadeCargaKg);
     }
 
     // ===== Getters e setters com validação =====
@@ -98,6 +119,14 @@ public class Carro extends Veiculo {
             throw new IllegalArgumentException("Número de portas inválido.");
         }
         this.numeroPortas = numeroPortas;
+    }
+
+    public double getCapacidadeCargaKg() { return capacidadeCargaKg; }
+    public void setCapacidadeCargaKg(double capacidadeCargaKg) {
+        if (capacidadeCargaKg <= 0) {
+            throw new IllegalArgumentException("Capacidade de carga deve ser maior que zero.");
+        }
+        this.capacidadeCargaKg = capacidadeCargaKg;
     }
 
     public double getVolumePortaMalas() { return volumePortaMalas; }

@@ -13,7 +13,7 @@ import java.util.List;
  * Também implementa as interfaces Custeavel e Manutenivel. Como a classe é abstrata,
  * ela pode deixar alguns métodos dessas interfaces sem corpo, para as filhas implementarem.
  */
-public abstract class Veiculo implements Custeavel, Manutenivel {
+public abstract class Veiculo implements Custeavel, Manutenivel, Persistivel {
 
     // ===================== ATRIBUTOS =====================
 
@@ -124,7 +124,19 @@ public abstract class Veiculo implements Custeavel, Manutenivel {
         if (pedagio < 0) {
             throw new IllegalArgumentException("Pedágio não pode ser negativo.");
         }
-        return calcularCustoViagem(km) + pedagio;
+        return somarCustos(calcularCustoViagem(km), pedagio);
+    }
+
+    /**
+     * REQUISITO (argumentos variáveis + método estático): soma qualquer quantidade de
+     * parcelas de custo (combustível, desgaste, pedágio...). Usado nos cálculos de viagem.
+     */
+    protected static double somarCustos(double... parcelas) {
+        double total = 0;
+        for (double p : parcelas) {
+            total += p;
+        }
+        return total;
     }
 
     /**
@@ -210,6 +222,39 @@ public abstract class Veiculo implements Custeavel, Manutenivel {
      * Gancho (hook) para POLIMORFISMO: por padrão não imprime nada. Cada filha sobrescreve
      * para mostrar seus dados específicos (portas, eixos, cilindradas...) dentro do relatório.
      */
+    /**
+     * Dados cadastrais exclusivos de cada tipo, separados por ';' (ex.: portas e porta-malas).
+     * Gancho usado por paraLinha(): cada filha diz quais campos extras grava.
+     */
+    protected abstract String camposEspecificos();
+
+    /** Campos gravados no FIM da linha (depois do estado dos itens). Por padrão, nenhum. */
+    protected String camposFinais() { return ""; }
+
+    /**
+     * Persistivel: converte o veículo em UMA linha de texto para veiculos.txt:
+     * tipo;placa;modelo;motor;combustível;potência;consumo;[campos do tipo];km;estado dos itens[;campos finais]
+     */
+    @Override
+    public String paraLinha() {
+        String linha = String.join(";", getTipoVeiculo(), placa, modelo, motor, combustivel.name(),
+                String.valueOf(potencia), String.valueOf(consumo), camposEspecificos(),
+                String.valueOf(quilometragem), estadoItens());
+        String finais = camposFinais();
+        return finais.isEmpty() ? linha : linha + ";" + finais;
+    }
+
+    /** Estado dos itens na ordem do manual: "apto,km,meses" separados por '|'. */
+    private String estadoItens() {
+        List<String> itens = new ArrayList<>();
+        for (SistemaVeiculo sistema : sistemas) {
+            for (ItemChecagem item : sistema.getItens()) {
+                itens.add(item.isApto() + "," + item.getKilometrosDeUso() + "," + item.getTempoDeUsoMeses());
+            }
+        }
+        return String.join("|", itens);
+    }
+
     protected void exibirDadosEspecificos() { }
 
     /** Imprime o relatório completo: dados gerais, dados do tipo e situação de cada sistema. */
@@ -287,6 +332,14 @@ public abstract class Veiculo implements Custeavel, Manutenivel {
 
     // Sem setter: o odômetro só aumenta pelo método rodar().
     public double getQuilometragem() { return quilometragem; }
+
+    /** Restaura o odômetro ao carregar um veículo salvo em arquivo (não mexe nos itens de checagem). */
+    public void restaurarQuilometragem(double quilometragem) {
+        if (quilometragem < 0) {
+            throw new IllegalArgumentException("Quilometragem não pode ser negativa.");
+        }
+        this.quilometragem = quilometragem;
+    }
 
     // Devolve uma visão SOMENTE LEITURA: quem chama não consegue adicionar/remover sistemas
     // por fora, o que preserva o encapsulamento.

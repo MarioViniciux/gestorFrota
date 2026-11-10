@@ -10,7 +10,7 @@ public class Pessoa {
     //Atributos privados
     private String nome;
     private int idade;
-    private String cpf;
+    private final String cpf;
     private String telefone;
     private String email;
     
@@ -18,7 +18,10 @@ public class Pessoa {
     public Pessoa(String pNome, int pIdade, String pCpf, String pTelefone, String pEmail){
         setNome(pNome);
         setIdade(pIdade);
-        setCpf(pCpf);
+        if (pCpf == null || !pCpf.matches("\\d{11}")) {
+            throw new IllegalArgumentException("O cpf deve conter 11 digitos.");
+        }
+        this.cpf = pCpf;
         setTelefone(pTelefone);
         setEmail(pEmail);  
     }
@@ -37,13 +40,6 @@ public class Pessoa {
             throw new IllegalArgumentException("A idade deve ser maior que zero.");
         }
         this.idade = idade;
-    }
-    
-    public void setCpf(String cpf){
-        if(cpf == null || !cpf.matches("\\d{11}")){
-            throw new IllegalArgumentException("O cpf deve conte 11 digitos.");
-        }
-        this.cpf = cpf;
     }
     
     public void setTelefone(String telefone){

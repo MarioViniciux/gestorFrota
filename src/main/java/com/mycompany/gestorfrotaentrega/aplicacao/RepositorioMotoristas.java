@@ -61,9 +61,14 @@ public class RepositorioMotoristas extends Repositorio<Motorista>{
         // Salva a lista atualizada no arquivo
         salvar(motoristas);
     }
+
+    /** Remove o motorista do arquivo pelo CPF. @return true se existia e foi removido */
+    public boolean remover(String cpf) throws IOException {
+        ArrayList<Motorista> motoristas = carregar();
+        boolean removido = motoristas.removeIf(m -> m.getCpf().equals(cpf));
+        if (removido) {
+            salvar(motoristas);
+        }
+        return removido;
+    }
 }
-
-
-
-    
-

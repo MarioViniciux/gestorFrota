@@ -7,7 +7,7 @@ public class ItemChecagem {
 
     private String nome;
     private boolean apto;
-    private double kilometrosDeUso;
+    private float kilometrosDeUso;
     private int tempoDeUsoMeses;
     private Double limiteKm;      // pode ser vazio (null) 
     private Integer limiteMeses;  // pode ser vazio (null)
@@ -41,7 +41,8 @@ public class ItemChecagem {
             System.out.println("Aviso: valores de uso menores que zero, ignorados em '" + nome + "'.");
             return;
         }
-        this.kilometrosDeUso += km;
+        // Coerção explícita (cast): o km chega como double, mas o atributo é float.
+        this.kilometrosDeUso = (float) (this.kilometrosDeUso + km);
         this.tempoDeUsoMeses += meses;
 
         boolean venceuKm = limiteKm != null && kilometrosDeUso >= limiteKm;
@@ -69,6 +70,19 @@ public class ItemChecagem {
         return limiteKm != null || limiteMeses != null;
     }
 
+    /**
+     * Desgaste do item em % (0 a 100+): o maior entre o uso por km e o uso por tempo.
+     * Itens sem limites (checagem simples) não têm desgaste mensurável: devolve -1.
+     */
+    public double percentualDesgaste() {
+        if (!possuiLimites()) {
+            return -1;
+        }
+        double porKm = limiteKm != null && limiteKm > 0 ? kilometrosDeUso * 100.0 / limiteKm : 0;
+        double porTempo = limiteMeses != null && limiteMeses > 0 ? tempoDeUsoMeses * 100.0 / limiteMeses : 0;
+        return Math.max(porKm, porTempo);
+    }
+
     // Getters e Setters
     public String getNome() {
         return nome; 
@@ -86,11 +100,11 @@ public class ItemChecagem {
         this.apto = apto; 
     }
 
-    public double getKilometrosDeUso() {
-        return kilometrosDeUso; 
+    public float getKilometrosDeUso() {
+        return kilometrosDeUso;
     }
-    
-    public void setKilometrosDeUso(double kilometrosDeUso) { 
+
+    public void setKilometrosDeUso(float kilometrosDeUso) {
         this.kilometrosDeUso = kilometrosDeUso; 
     }
 

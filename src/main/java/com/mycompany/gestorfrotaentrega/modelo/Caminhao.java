@@ -62,39 +62,39 @@ public class Caminhao extends Veiculo {
         limparSistemas();
 
         SistemaVeiculo freio = new SistemaVeiculo("Sistema de Freio");
-        freio.add(new ItemChecagem("Lonas de freio"));
-        freio.add(new ItemChecagem("Secador de ar"));
+        freio.add(new ItemChecagem("Lonas de freio", 80000, 18));
+        freio.add(new ItemChecagem("Secador de ar", 100000, 24));
         adicionarSistema(freio);
 
         SistemaVeiculo eletrico = new SistemaVeiculo("Sistema Elétrico");
-        eletrico.add(new ItemChecagem("Baterias"));
-        eletrico.add(new ItemChecagem("Fusíveis e relés"));
-        eletrico.add(new ItemChecagem("Motor de arranque"));
-        eletrico.add(new ItemChecagem("Diodo"));
-        eletrico.add(new ItemChecagem("Luzes"));
-        eletrico.add(new ItemChecagem("Transparência das lanternas"));
-        eletrico.add(new ItemChecagem("Controle remoto"));
-        eletrico.add(new ItemChecagem("Alarme"));
+        eletrico.add(new ItemChecagem("Baterias", 100000, 24));
+        eletrico.add(new ItemChecagem("Fusíveis e relés", 200000, 60));
+        eletrico.add(new ItemChecagem("Motor de arranque", 300000, 72));
+        eletrico.add(new ItemChecagem("Diodo", 300000, 72));
+        eletrico.add(new ItemChecagem("Luzes", 100000, 36));
+        eletrico.add(new ItemChecagem("Transparência das lanternas", 150000, 48));
+        eletrico.add(new ItemChecagem("Controle remoto", 200000, 60));
+        eletrico.add(new ItemChecagem("Alarme", 200000, 60));
         adicionarSistema(eletrico);
 
         SistemaVeiculo rodas = new SistemaVeiculo("Rodas e Pneus");
-        rodas.add(new ItemChecagem("Pneu"));
-        rodas.add(new ItemChecagem("Rodas"));
-        rodas.add(new ItemChecagem("Alinhamento"));
-        rodas.add(new ItemChecagem("Balanceamento"));
+        rodas.add(new ItemChecagem("Pneu", 80000, 36));
+        rodas.add(new ItemChecagem("Rodas", 300000, 96));
+        rodas.add(new ItemChecagem("Alinhamento", 20000, 12));
+        rodas.add(new ItemChecagem("Balanceamento", 20000, 12));
         adicionarSistema(rodas);
 
         SistemaVeiculo combustivelSis = new SistemaVeiculo("Sistema de Combustível");
-        combustivelSis.add(new ItemChecagem("Bomba de combustível"));
-        combustivelSis.add(new ItemChecagem("Boia"));
+        combustivelSis.add(new ItemChecagem("Bomba de combustível", 250000, 60));
+        combustivelSis.add(new ItemChecagem("Boia", 250000, 72));
         adicionarSistema(combustivelSis);
 
         SistemaVeiculo arrefecimento = new SistemaVeiculo("Sistema de Arrefecimento");
-        arrefecimento.add(new ItemChecagem("Sistema de arrefecimento"));
+        arrefecimento.add(new ItemChecagem("Sistema de arrefecimento", 100000, 24));
         adicionarSistema(arrefecimento);
 
         SistemaVeiculo acessorio = new SistemaVeiculo("Acessórios");
-        acessorio.add(new ItemChecagem("Palheta do limpador"));
+        acessorio.add(new ItemChecagem("Palheta do limpador", 30000, 12));
         adicionarSistema(acessorio);
 
         // Óleos: (nome, limite em km, limite em meses)
@@ -162,7 +162,14 @@ public class Caminhao extends Veiculo {
     /** Custeavel: combustível (método do pai) + desgaste proporcional aos km. */
     @Override
     public double calcularCustoViagem(double km) {
-        return calcularCustoCombustivel(km) + km * calcularCustoManutencaoPorKm();
+        return somarCustos(calcularCustoCombustivel(km), km * calcularCustoManutencaoPorKm());
+    }
+
+    /** Persistência: volume do baú, CMT, tara e número de eixos. */
+    @Override
+    protected String camposEspecificos() {
+        return String.join(";", String.valueOf(volumeBau), String.valueOf(cmt),
+                String.valueOf(tara), String.valueOf(numeroEixos));
     }
 
     /** Gancho do pai: acrescenta eixos, baú e pesos (tara/PBTC/CMT) ao relatório. */

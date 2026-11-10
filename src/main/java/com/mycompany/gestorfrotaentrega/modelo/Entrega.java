@@ -1,10 +1,7 @@
 package com.mycompany.gestorfrotaentrega.modelo;
 
 import java.util.Locale;
-/**
- *
- * @author guirr
- */
+
 public class Entrega implements Persistivel{
     
     public static final double TAXA_ADMINISTRATIVA = 0.10;
@@ -12,11 +9,10 @@ public class Entrega implements Persistivel{
     private final Veiculo veiculo;
     private final Motorista motorista;
     private final Carga carga; 
-    private final String destino; 
     private final double distanciaKm;
     private final double valor; 
     
-    public Entrega(Veiculo veiculo, Motorista motorista, String destino, String descricaoCarga, int rastreioCarga, float pesoCarga, double distanciaKm, double valor)throws EntregaInvalidaException{
+    public Entrega(Veiculo veiculo, Motorista motorista, String destino, String descricaoCarga, float pesoCarga, double distanciaKm, double valor)throws EntregaInvalidaException{
     
         if(veiculo == null || motorista ==null){
             throw new EntregaInvalidaException("Veículo e motorista são obrigatórios.");
@@ -29,8 +25,7 @@ public class Entrega implements Persistivel{
         }
         this.veiculo = veiculo;
         this.motorista = motorista;
-        this.destino = destino;
-        this.carga = new Carga(descricaoCarga,rastreioCarga, pesoCarga);
+        this.carga = new Carga(descricaoCarga, pesoCarga);
         this.distanciaKm = distanciaKm;
         this.valor  = valor;
     }
@@ -55,10 +50,6 @@ public class Entrega implements Persistivel{
         return carga;
     }
     
-    public String getDestino (){
-        return destino;
-    }
-    
     public double getDistanciaKm() {
         return distanciaKm;
     }
@@ -70,16 +61,17 @@ public class Entrega implements Persistivel{
     public static String formatarValor(double valor) {
         return String.format(Locale.forLanguageTag("pt-BR"), "R$ %,.2f", valor);
     }
+    
     @Override
     public String paraLinha() {
         return String.join(";", veiculo.getPlaca(), motorista.getCpf(), carga.getDescricao(),
                 String.valueOf(carga.getPeso()), String.valueOf(distanciaKm), String.valueOf(valor));
     }
+    
     @Override
     public String toString() {
         return carga.getDescricao() + " (" + carga.getPeso() + " kg, " + distanciaKm + " km) - "
                 + veiculo.getTipoVeiculo() + " " + veiculo.getPlaca() + " - " + motorista.getNome()
                 + " - " + formatarValor(valor);
     }
-    
 }
