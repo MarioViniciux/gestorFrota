@@ -1,4 +1,4 @@
-package com.mycompany.gestorfrotaentrega.aplicacao;
+package com.mycompany.gestorfrotaentrega.aplicacao; // 9: pacote 'aplicacao' (o projeto tem exatamente 2 pacotes: modelo e aplicacao)
 
 import com.mycompany.gestorfrotaentrega.modelo.Caminhao;
 import com.mycompany.gestorfrotaentrega.modelo.Carro;
@@ -22,9 +22,11 @@ import java.util.Map;
  * Estende Repositorio<Veiculo> para ler/gravar veiculos.txt (Veiculo implementa Persistivel),
  * mas mantém os veículos em memória, num mapa, e só grava quando salvar() é chamado.
  */
+// 10: classe concreta da classe abstrata Repositorio
 public class RepositorioVeiculos extends Repositorio<Veiculo> {
 
     /** Arquivo de registro dos veículos (uma linha por veículo, campos separados por ';'). */
+    // 3: construtor declarado
     public RepositorioVeiculos() {
         super("veiculos.txt");
     }
@@ -98,6 +100,7 @@ public class RepositorioVeiculos extends Repositorio<Veiculo> {
      * O {@code <T extends Veiculo>} (generics) faz o retorno já vir com o tipo certo,
      * sem precisar de cast por quem chama.
      */
+    // 7.4: polimorfismo paramétrico — método genérico (não é construtor nem classe abstrata); o tipo é passado de forma explícita em FrotaApp
     public <T extends Veiculo> List<T> listarPorTipo(Class<T> tipo) {
         List<T> resultado = new ArrayList<>();
         for (Veiculo v : veiculos.values()) {
@@ -132,6 +135,7 @@ public class RepositorioVeiculos extends Repositorio<Veiculo> {
      * carregar() também é herdado: lê o arquivo e devolve os veículos (não os cadastra aqui);
      * linhas em branco ou inválidas são ignoradas.
      */
+    // 13: grava todos os veículos em veiculos.txt
     public void salvar() throws IOException {
         salvar(listarTodos());
     }
@@ -158,6 +162,7 @@ public class RepositorioVeiculos extends Repositorio<Veiculo> {
      * Gancho de Repositorio: transforma UMA linha do arquivo em Veiculo (Carro, Moto ou Caminhão),
      * restaurando também a quilometragem, o estado dos itens e a carga máxima.
      */
+    // 10: implementa o método abstrato converter() | 13: reconstrói o Veículo a partir de uma linha lida do arquivo
     @Override
     protected Veiculo converter(String linha) {
         String[] d = linha.split(";", -1);

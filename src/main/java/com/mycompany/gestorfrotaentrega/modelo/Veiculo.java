@@ -1,4 +1,4 @@
-package com.mycompany.gestorfrotaentrega.modelo;
+package com.mycompany.gestorfrotaentrega.modelo; // 9: pacote 'modelo' (o projeto tem exatamente 2 pacotes: modelo e aplicacao)
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,18 +13,23 @@ import java.util.List;
  * Também implementa as interfaces Custeavel e Manutenivel. Como a classe é abstrata,
  * ela pode deixar alguns métodos dessas interfaces sem corpo, para as filhas implementarem.
  */
+// 10: classe abstrata (classes concretas: Carro, Moto e Caminhao)
+// 8: implementa três interfaces (Custeavel, Manutenivel e Persistivel)
 public abstract class Veiculo implements Custeavel, Manutenivel, Persistivel {
 
     // ===================== ATRIBUTOS =====================
 
     // REQUISITO (atributo final): a placa identifica o veículo e NUNCA muda depois de criado.
     // Por ser final, só pode receber valor no construtor e não tem setter.
+    // 1.1: atributo private (encapsulamento). O 6.1 (atributo final em superclasse concreta) é cumprido em Pessoa.cpf, pois Veiculo é abstrata
     private final String placa;
 
     // REQUISITO (encapsulamento): todos os atributos são PRIVATE. O acesso de fora é feito
     // apenas por getters/setters, e os setters validam os valores recebidos.
+    // 1.1: atributos private (encapsulamento)
     private String modelo;               // ex.: "Volvo FH 540 6x4"
     private String motor;                // descrição do motor
+    // 1.3: atributo do tipo de uma enumeração criada para o sistema (TipoCombustivel)
     private TipoCombustivel combustivel; // REQUISITO (enum): tipo de combustível, não mais String
     private double potencia;             // potência em cv
     private double consumo;              // km rodados por unidade de combustível (km/l, km/kWh...)
@@ -40,6 +45,7 @@ public abstract class Veiculo implements Custeavel, Manutenivel, Persistivel {
      * REQUISITO (sobrecarga de construtores) - versão COMPLETA.
      * Valida a placa aqui e delega o restante para os setters, que já validam cada campo.
      */
+    // 3: construtor declarado | 7.1: polimorfismo de sobrecarga (construtores com 6 e com 4 parâmetros)
     public Veiculo(String placa, String modelo, String motor, TipoCombustivel combustivel,
                    double potencia, double consumo) {
         // Placa é obrigatória: não aceita null nem texto vazio/só espaços.
@@ -64,6 +70,7 @@ public abstract class Veiculo implements Custeavel, Manutenivel, Persistivel {
      * REQUISITO (sobrecarga de construtores) - versão REDUZIDA.
      * Chama a versão completa via this(...), preenchendo motor e potência com valores padrão.
      */
+    // 7.1: polimorfismo de sobrecarga de construtor
     public Veiculo(String placa, String modelo, TipoCombustivel combustivel, double consumo) {
         this(placa, modelo, "Não informado", combustivel, 0.0, consumo);
     }
@@ -78,16 +85,19 @@ public abstract class Veiculo implements Custeavel, Manutenivel, Persistivel {
      * Monta os sistemas e itens do manual de manutenção. Cada tipo de veículo tem
      * um manual diferente, por isso o método é abstrato.
      */
+    // 10: método abstrato (não é construtor, get nem set); implementado em Carro, Moto e Caminhao
     public abstract void carregarSistemasDoManual();
 
     // Os dois métodos abaixo vêm da interface Custeavel e continuam abstratos aqui.
     // O @Override + abstract deixa explícito que a decisão fica para as filhas.
 
     /** Custo da viagem: a fórmula muda conforme o tipo (eixos, cilindrada, etc.). */
+    // 10: método abstrato calcularCustoViagem (não é construtor, get nem set)
     @Override
     public abstract double calcularCustoViagem(double km);
 
     /** Custo de manutenção por km: valor diferente para carro, moto e caminhão. */
+    // 10: método abstrato calcularCustoManutencaoPorKm (não é construtor, get nem set)
     @Override
     public abstract double calcularCustoManutencaoPorKm();
 
@@ -97,6 +107,7 @@ public abstract class Veiculo implements Custeavel, Manutenivel, Persistivel {
      * Custo de combustível de uma viagem, usando o preço de referência do enum.
      * Delega para a versão sobrecarregada logo abaixo.
      */
+    // 7.1: polimorfismo de sobrecarga (calcularCustoCombustivel com 1 e com 2 parâmetros)
     public double calcularCustoCombustivel(double km) {
         return calcularCustoCombustivel(km, combustivel.getPrecoReferencia());
     }
@@ -107,6 +118,7 @@ public abstract class Veiculo implements Custeavel, Manutenivel, Persistivel {
      *
      * Fórmula: (km / consumo) * preço  ->  litros gastos x preço por litro.
      */
+    // 7.1: polimorfismo de sobrecarga (versão com preço informado)
     public double calcularCustoCombustivel(double km, double precoPorUnidade) {
         validarKm(km);
         if (precoPorUnidade < 0) {
@@ -120,6 +132,7 @@ public abstract class Veiculo implements Custeavel, Manutenivel, Persistivel {
      * Reaproveita calcularCustoViagem(km), que é abstrato: cada tipo calcula do seu jeito
      * e aqui apenas somamos o pedágio (polimorfismo).
      */
+    // 7.1: polimorfismo de sobrecarga de calcularCustoViagem (versão com pedágio)
     public double calcularCustoViagem(double km, double pedagio) {
         if (pedagio < 0) {
             throw new IllegalArgumentException("Pedágio não pode ser negativo.");
@@ -131,6 +144,8 @@ public abstract class Veiculo implements Custeavel, Manutenivel, Persistivel {
      * REQUISITO (argumentos variáveis + método estático): soma qualquer quantidade de
      * parcelas de custo (combustível, desgaste, pedágio...). Usado nos cálculos de viagem.
      */
+    // 2.1: método com lista de argumentos variados (double...), com FOR sobre os dados recebidos; usado nos cálculos de custo
+    // 2.2: método estático (não é o main), necessário e usado em Veiculo, Carro, Moto e Caminhao
     protected static double somarCustos(double... parcelas) {
         double total = 0;
         for (double p : parcelas) {
@@ -226,6 +241,7 @@ public abstract class Veiculo implements Custeavel, Manutenivel, Persistivel {
      * Dados cadastrais exclusivos de cada tipo, separados por ';' (ex.: portas e porta-malas).
      * Gancho usado por paraLinha(): cada filha diz quais campos extras grava.
      */
+    // 10: método abstrato (não é construtor, get nem set)
     protected abstract String camposEspecificos();
 
     /** Campos gravados no FIM da linha (depois do estado dos itens). Por padrão, nenhum. */
@@ -235,6 +251,7 @@ public abstract class Veiculo implements Custeavel, Manutenivel, Persistivel {
      * Persistivel: converte o veículo em UMA linha de texto para veiculos.txt:
      * tipo;placa;modelo;motor;combustível;potência;consumo;[campos do tipo];km;estado dos itens[;campos finais]
      */
+    // 13: converte o veículo numa linha de texto para ser gravada em veiculos.txt | 8: método da interface Persistivel
     @Override
     public String paraLinha() {
         String linha = String.join(";", getTipoVeiculo(), placa, modelo, motor, combustivel.name(),

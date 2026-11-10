@@ -1,10 +1,11 @@
-package com.mycompany.gestorfrotaentrega.modelo;
+package com.mycompany.gestorfrotaentrega.modelo; // 9: pacote 'modelo' (o projeto tem exatamente 2 pacotes: modelo e aplicacao)
 
 /**
  * REQUISITO DO PROFESSOR (herança):
  * Carro ESPECIALIZA Veiculo ("é um" Veiculo). Herda placa, modelo, combustível, consumo,
  * relatório etc., e acrescenta apenas o que é próprio de um carro de entregas leves.
  */
+// 10: classe concreta da classe abstrata Veiculo (implementa todos os métodos abstratos)
 public class Carro extends Veiculo {
 
     // Custo de desgaste (pneus, freios, revisões) por km, em reais.
@@ -12,17 +13,20 @@ public class Carro extends Veiculo {
     private static final double CUSTO_DESGASTE_POR_KM = 0.15;
 
     // Atributos específicos do carro (privados: encapsulamento).
+    // 1.1: atributos private (encapsulamento)
     private int numeroPortas;
     private double volumePortaMalas; // em litros
     private double capacidadeCargaKg; // carga máxima permitida, em kg
 
     /** Capacidade assumida quando não informada (cadastros antigos e construtor simples). */
+    // 1.5: constante primitiva (double) com valor na declaração, usada em outra classe (FrotaApp)
     public static final double CAPACIDADE_PADRAO_KG = 500;
 
     /**
      * REQUISITO (sobrecarga de construtores) - versão COMPLETA.
      * super(...) chama o construtor da classe-pai para preencher os dados comuns.
      */
+    // 3: construtor declarado | 7.1: polimorfismo de sobrecarga (3 construtores)
     public Carro(String placa, String modelo, String motor, TipoCombustivel combustivel,
                  double potencia, double consumo, int numeroPortas, double volumePortaMalas,
                  double capacidadeCargaKg) {
@@ -34,6 +38,7 @@ public class Carro extends Veiculo {
     }
 
     /** Versão sem capacidade de carga: assume {@link #CAPACIDADE_PADRAO_KG}. */
+    // 7.1: polimorfismo de sobrecarga de construtor
     public Carro(String placa, String modelo, String motor, TipoCombustivel combustivel,
                  double potencia, double consumo, int numeroPortas, double volumePortaMalas) {
         this(placa, modelo, motor, combustivel, potencia, consumo, numeroPortas, volumePortaMalas,
@@ -44,6 +49,7 @@ public class Carro extends Veiculo {
      * REQUISITO (sobrecarga de construtores) - versão SIMPLES.
      * Assume motor não informado, potência 0, 4 portas e 400 L de porta-malas.
      */
+    // 7.1: polimorfismo de sobrecarga de construtor
     public Carro(String placa, String modelo, TipoCombustivel combustivel, double consumo) {
         this(placa, modelo, "Não informado", combustivel, 0.0, consumo, 4, 400.0);
     }
@@ -57,6 +63,7 @@ public class Carro extends Veiculo {
      * Itens criados só com o nome são "checagens simples" (apto/reprovado manualmente).
      * Itens com (nome, km, meses) são periódicos: vencem sozinhos ao atingir um dos limites.
      */
+    // 10: implementação do método abstrato carregarSistemasDoManual() de Veiculo
     @Override
     public void carregarSistemasDoManual() {
         limparSistemas(); // evita duplicar sistemas se o método for chamado de novo

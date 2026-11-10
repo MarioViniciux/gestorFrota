@@ -1,4 +1,4 @@
-package com.mycompany.gestorfrotaentrega.modelo;
+package com.mycompany.gestorfrotaentrega.modelo; // 9: pacote 'modelo' (o projeto tem exatamente 2 pacotes: modelo e aplicacao)
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,9 +8,11 @@ import java.util.List;
  */
 public class SistemaVeiculo {
 
+    // 1.1: atributos private (encapsulamento)
     private String nomeSistema;
     private List<ItemChecagem> itens;
 
+    // 3: construtor declarado
     public SistemaVeiculo(String nomeSistema) {
         this.nomeSistema = nomeSistema;
         this.itens = new ArrayList<>();

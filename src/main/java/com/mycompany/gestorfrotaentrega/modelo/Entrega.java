@@ -1,17 +1,22 @@
-package com.mycompany.gestorfrotaentrega.modelo;
+package com.mycompany.gestorfrotaentrega.modelo; // 9: pacote 'modelo' (o projeto tem exatamente 2 pacotes: modelo e aplicacao)
 
 import java.util.Locale;
 
+// 8: implementa a interface Persistivel
 public class Entrega implements Persistivel{
     
-    public static final double TAXA_ADMINISTRATIVA = 0.10;
+    public static final double TAXA_ADMINISTRATIVA = 0.10; // 1.5: constante primitiva com valor na declaração, usada em Frota.orcamento()
     
+    // 1.1: atributos private (encapsulamento)
+    // 5: agregação — Veiculo e Motorista existem independentemente da Entrega e são recebidos pelo construtor
     private final Veiculo veiculo;
     private final Motorista motorista;
+    // 4: composição — a Carga é criada dentro do construtor da Entrega e não existe fora dela
     private final Carga carga; 
     private final double distanciaKm;
     private final double valor; 
     
+    // 3: construtor declarado | 5: construtor da agregação, usado em Frota.atribuirEntrega()
     public Entrega(Veiculo veiculo, Motorista motorista, String descricaoCarga, double pesoCarga, double distanciaKm, double valor) throws EntregaInvalidaException{
     
         if(veiculo == null || motorista == null){
@@ -22,6 +27,7 @@ public class Entrega implements Persistivel{
         }
         this.veiculo = veiculo;
         this.motorista = motorista;
+        // 4: composição — o construtor de Carga é usado aqui
         this.carga = new Carga(descricaoCarga, pesoCarga);
         this.distanciaKm = distanciaKm;
         this.valor = valor;
@@ -56,10 +62,12 @@ public class Entrega implements Persistivel{
         return valor;
     }
     
+    // 2.2: método estático (não é o main), necessário e usado em FrotaApp para exibir valores em R$
     public static String formatarValor(double valor) {
         return String.format(Locale.forLanguageTag("pt-BR"), "R$ %,.2f", valor);
     }
     
+    // 13: converte a entrega numa linha de texto para gravar em historico.txt | 8: método da interface Persistivel
     @Override
     public String paraLinha() {
         return String.join(";", veiculo.getPlaca(), motorista.getCpf(), carga.getDescricao(),

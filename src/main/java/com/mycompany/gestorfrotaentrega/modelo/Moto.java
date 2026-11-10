@@ -1,23 +1,27 @@
-package com.mycompany.gestorfrotaentrega.modelo;
+package com.mycompany.gestorfrotaentrega.modelo; // 9: pacote 'modelo' (o projeto tem exatamente 2 pacotes: modelo e aplicacao)
 
 /**
  * REQUISITO DO PROFESSOR (herança):
  * Moto ESPECIALIZA Veiculo, voltada para entregas rápidas em área urbana.
  * Tem desgaste menor por km e um manual de manutenção com itens próprios (corrente, coroa...).
  */
+// 10: classe concreta da classe abstrata Veiculo (implementa todos os métodos abstratos)
 public class Moto extends Veiculo {
 
     // Custo de desgaste por km (menor que o do carro). Valor ilustrativo.
     private static final double CUSTO_DESGASTE_POR_KM = 0.08;
 
+    // 1.1: atributos private (encapsulamento)
     private int cilindradas;     // em cc (centímetros cúbicos)
     private boolean possuiBau;   // indica se a moto tem baú para carga
     private double capacidadeCargaKg; // carga máxima permitida, em kg
 
     /** Capacidade assumida quando não informada (cadastros antigos e construtor simples). */
+    // 1.5: constante primitiva (double) com valor na declaração, usada em outra classe (FrotaApp)
     public static final double CAPACIDADE_PADRAO_KG = 30;
 
     /** REQUISITO (sobrecarga de construtores) - versão COMPLETA. */
+    // 3: construtor declarado | 7.1: polimorfismo de sobrecarga (3 construtores)
     public Moto(String placa, String modelo, String motor, TipoCombustivel combustivel,
                 double potencia, double consumo, int cilindradas, boolean possuiBau,
                 double capacidadeCargaKg) {
@@ -29,6 +33,7 @@ public class Moto extends Veiculo {
     }
 
     /** Versão sem capacidade de carga: assume {@link #CAPACIDADE_PADRAO_KG}. */
+    // 7.1: polimorfismo de sobrecarga de construtor
     public Moto(String placa, String modelo, String motor, TipoCombustivel combustivel,
                 double potencia, double consumo, int cilindradas, boolean possuiBau) {
         this(placa, modelo, motor, combustivel, potencia, consumo, cilindradas, possuiBau,
@@ -39,6 +44,7 @@ public class Moto extends Veiculo {
      * REQUISITO (sobrecarga de construtores) - versão SIMPLES.
      * Assume gasolina, motor/potência não informados e moto com baú.
      */
+    // 7.1: polimorfismo de sobrecarga de construtor
     public Moto(String placa, String modelo, int cilindradas, double consumo) {
         this(placa, modelo, "Não informado", TipoCombustivel.GASOLINA, 0.0, consumo, cilindradas, true);
     }
@@ -47,6 +53,7 @@ public class Moto extends Veiculo {
     public String getTipoVeiculo() { return "Moto"; }
 
     /** Manual de manutenção da moto (menos sistemas que o caminhão, intervalos mais curtos). */
+    // 10: implementação do método abstrato carregarSistemasDoManual() de Veiculo
     @Override
     public void carregarSistemasDoManual() {
         limparSistemas();

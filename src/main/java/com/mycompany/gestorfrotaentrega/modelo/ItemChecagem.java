@@ -1,10 +1,12 @@
-package com.mycompany.gestorfrotaentrega.modelo;
+package com.mycompany.gestorfrotaentrega.modelo; // 9: pacote 'modelo' (o projeto tem exatamente 2 pacotes: modelo e aplicacao)
 
 /**
  * Item individual de checagem/manutenção de um sistema do veículo.
  */
 public class ItemChecagem {
 
+    // 1.1: atributos private (encapsulamento)
+    // 1.2: na mesma classe: String (nome), int (tempoDeUsoMeses) e float (kilometrosDeUso)
     private String nome;
     private boolean apto;
     private float kilometrosDeUso;
@@ -13,6 +15,7 @@ public class ItemChecagem {
     private Integer limiteMeses;  // pode ser vazio (null)
 
     /** Checagem simples de estado (sem controle de limites). */
+    // 3: construtor declarado | 7.1: polimorfismo de sobrecarga (construtores com 1 e com 3 parâmetros)
     public ItemChecagem(String nome) {
         this.nome = nome;
         this.apto = true;
@@ -21,6 +24,7 @@ public class ItemChecagem {
     }
 
     /** Item de manutenção periódica, com limites por km e por tempo. */
+    // 7.1: polimorfismo de sobrecarga de construtor
     public ItemChecagem(String nome, double limiteKm, int limiteMeses) {
         this(nome);
         this.limiteKm = limiteKm;
@@ -41,6 +45,7 @@ public class ItemChecagem {
             System.out.println("Aviso: valores de uso menores que zero, ignorados em '" + nome + "'.");
             return;
         }
+        // 7.2: polimorfismo de coerção — cast explícito (float) de uma expressão double, sem função de conversão
         // Coerção explícita (cast): o km chega como double, mas o atributo é float.
         this.kilometrosDeUso = (float) (this.kilometrosDeUso + km);
         this.tempoDeUsoMeses += meses;

@@ -1,4 +1,4 @@
-package com.mycompany.gestorfrotaentrega.aplicacao;
+package com.mycompany.gestorfrotaentrega.aplicacao; // 9: pacote 'aplicacao' (o projeto tem exatamente 2 pacotes: modelo e aplicacao)
 
 import com.mycompany.gestorfrotaentrega.modelo.Caminhao;
 import com.mycompany.gestorfrotaentrega.modelo.CategoriaCNH;
@@ -44,13 +44,16 @@ public class FrotaApp extends JFrame {
     static final Color BAD = new Color(0xDC2626);
     static final Font BASE = new Font("SansSerif", Font.PLAIN, 14);
     
+    // 13: arquivos de texto onde o histórico de entregas e as remoções são guardados
     private static final Path HISTORICO = Path.of("historico.txt");
     private static final Path REMOVIDOS = Path.of("removidos.txt");
     
+    // 1.1: atributos não estáticos private (encapsulamento)
     private final Frota frota = new Frota();
     private final RepositorioVeiculos repoVeiculos = new RepositorioVeiculos();
     private final RepositorioMotoristas repoMotoristas = new RepositorioMotoristas();
     
+    // 6.2: acoplamento dinâmico — atributo declarado como Motorista (filha) e instanciado como Motorista em dialogoMotorista(); usa exibirDados(), definido só em Pessoa (pai)
     private Motorista ultimoMotoristaCadastrado;
     
     private final CardLayout cards = new CardLayout();
@@ -116,6 +119,7 @@ public class FrotaApp extends JFrame {
         return t == null ? "" : t.replace(";", ",").replace("\r", "");
     }
     
+    // 13: recupera veículos e motoristas gravados em arquivo ao iniciar o sistema e os usa na Frota
     private void carregarDados() {
         try {
             for (Veiculo v : repoVeiculos.carregar()) {
@@ -132,6 +136,7 @@ public class FrotaApp extends JFrame {
         }
     }
     
+    // 13: grava a remoção em removidos.txt
     private void registrarRemocao(String tipo, String identificador, String descricao, String telefone, String email, String detalhes) {
         String linha = String.join(";", java.time.LocalDateTime.now().withNano(0).toString(), tipo, limpar(identificador), limpar(descricao), limpar(telefone), limpar(email), limpar(detalhes).replace("\n", "\\n")) + System.lineSeparator();
         
@@ -142,6 +147,7 @@ public class FrotaApp extends JFrame {
         }
     }
     
+    // 13: recupera os registros de removidos.txt
     private List<String[]> lerRemovidos() {
         List<String[]> registros = new ArrayList<>();
         
@@ -199,6 +205,7 @@ public class FrotaApp extends JFrame {
         return d.toString();
     }
     
+    // 13: grava os veículos em veiculos.txt
     private void salvarVeiculos() {
         try {
             repoVeiculos.salvar();
@@ -207,6 +214,7 @@ public class FrotaApp extends JFrame {
         }
     }
     
+    // 13: grava a entrega em historico.txt
     private void registrarHistorico(Entrega entrega) {
         try {
             Files.writeString(HISTORICO, entrega.paraLinha() + System.lineSeparator(), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
@@ -215,6 +223,7 @@ public class FrotaApp extends JFrame {
         }
     }
     
+    // 13: recupera o histórico de entregas de historico.txt (usado no painel e na tabela de entregas)
     private List<String[]> lerHistorico() {
         List<String[]> registros = new ArrayList<>();
         
@@ -332,6 +341,7 @@ public class FrotaApp extends JFrame {
         kpis.add(kpi("Receita em entregas", Entrega.formatarValor(receita), OK));
         kpis.setPreferredSize(new Dimension(0, 110));
 
+        // 7.4: polimorfismo paramétrico — chamada com tipo genérico explícito ao método listarPorTipo
         // Polimorfismo paramétrico: o tipo genérico T é passado de forma explícita (<Carro>, <Moto>...).
         String porTipo = repoVeiculos.<Carro>listarPorTipo(Carro.class).size() + " carros · "
                 + repoVeiculos.<Moto>listarPorTipo(Moto.class).size() + " motos · "
@@ -616,6 +626,7 @@ public class FrotaApp extends JFrame {
         return pagina(tabela(mdlEntregas), add);
     }
 
+    // 2.1: método com lista de argumentos variados (JButton...), com FOR sobre os dados recebidos; usado nas páginas do sistema
     private JComponent pagina(JTable t, JButton... acoes) {
         JPanel p = new JPanel(new BorderLayout(0, 12));
         p.setOpaque(false);
@@ -631,6 +642,7 @@ public class FrotaApp extends JFrame {
         return p;
     }
     
+    // 12: entrada de dados por caixa de diálogo (JOptionPane, via confirmar())
     private void dialogoVeiculo() {
         JComboBox<String> tipo = new JComboBox<>(new String[]{"Moto", "Carro", "Caminhão"});
         JTextField placa = new JTextField(), modeloF = new JTextField();
@@ -647,7 +659,7 @@ public class FrotaApp extends JFrame {
         Runnable ajusta = () -> {
             int i = tipo.getSelectedIndex();
             capLeve.setEnabled(i != 2);
-            if (i != 2) capLeve.setValue(i == 0 ? Moto.CAPACIDADE_PADRAO_KG : Carro.CAPACIDADE_PADRAO_KG);
+            if (i != 2) capLeve.setValue(i == 0 ? Moto.CAPACIDADE_PADRAO_KG : Carro.CAPACIDADE_PADRAO_KG); // 1.5: usa as constantes CAPACIDADE_PADRAO_KG de Moto e Carro
             cc.setEnabled(i == 0);
             comb.setEnabled(i == 1);
             volume.setEnabled(i == 2); cmt.setEnabled(i == 2); tara.setEnabled(i == 2);
@@ -677,6 +689,7 @@ public class FrotaApp extends JFrame {
         }
     }
     
+    // 12: entrada de dados por caixa de diálogo (JOptionPane, via confirmar())
     private void dialogoMotorista() {
         JTextField nome = new JTextField(), cpf = new JTextField(), tel = new JTextField(), email = new JTextField();
         JTextField cnh = new JTextField(), validade = new JTextField(LocalDate.now().plusYears(5).toString());
@@ -697,12 +710,14 @@ public class FrotaApp extends JFrame {
             try {
                 Set<CategoriaCNH> categorias = EnumSet.noneOf(CategoriaCNH.class);
                 caixas.forEach((c, cb) -> { if (cb.isSelected()) categorias.add(c); });
+                // 6.2: o atributo ultimoMotoristaCadastrado é instanciado como Motorista (classe filha)
                 ultimoMotoristaCadastrado = new Motorista(nome.getText().trim(), (int) idade.getValue(), cpf.getText().trim(),
                         tel.getText().trim(), email.getText().trim(), cnh.getText().trim(), categorias,
                         LocalDate.parse(validade.getText().trim()), true);
                 repoMotoristas.cadastrar(ultimoMotoristaCadastrado); // valida CPF/CNH duplicados e grava em arquivo
                 frota.adicionarMotorista(ultimoMotoristaCadastrado);
                 atualizarTudo();
+                // 6.2: chama exibirDados() (método da classe pai Pessoa) a partir do atributo do tipo Motorista
                 // exibirDados() é herdado de Pessoa e chamado por um atributo do tipo Motorista
                 JOptionPane.showMessageDialog(this, ultimoMotoristaCadastrado.exibirDados(),
                         "Motorista cadastrado", JOptionPane.INFORMATION_MESSAGE);
@@ -716,6 +731,7 @@ public class FrotaApp extends JFrame {
         }
     }
     
+    // 12: entrada de dados por caixa de diálogo (JOptionPane, via confirmar())
     private void dialogoEntrega() {
         JTextField desc = new JTextField();
         JSpinner peso = new JSpinner(new SpinnerNumberModel(50.0, 1.0, 100000.0, 10.0));
@@ -776,7 +792,7 @@ public class FrotaApp extends JFrame {
                 registrarHistorico(e);
                 atualizarTudo();
                 ir("Entregas");
-            } catch (EntregaInvalidaException ex) {
+            } catch (EntregaInvalidaException ex) { // 11: exceção do sistema tratada aqui
                 aviso("Entrega recusada: " + ex.getMessage());
             } catch (IllegalArgumentException ex) {
                 aviso(ex.getMessage());
@@ -785,11 +801,13 @@ public class FrotaApp extends JFrame {
     }
     
     private String descrever(Motorista m) {
+        // 7.3: polimorfismo de subtipagem (pai e filho concretos)
         // Polimorfismo de subtipagem: um Motorista é passado onde se espera uma Pessoa (ambas concretas).
         return identificar(m) + ", CNH " + new TreeSet<>(m.getTiposCNH()) + ")"
                 + (m.estaDisponivel() ? "" : " - INDISPONÍVEL");
     }
 
+    // 7.3: parâmetro do tipo Pessoa (pai concreto) recebe um Motorista (filho concreto)
     private String identificar(Pessoa p) {
         return p.getNome() + " (CPF " + p.getCpf();
     }
@@ -964,6 +982,8 @@ public class FrotaApp extends JFrame {
         return b;
     }
     
+    // 2.1: método com lista de argumentos variados (Object...), com FOR sobre os dados recebidos; usado nos diálogos
+    // 2.2: método estático (não é o main), necessário e usado nos diálogos
     private static JPanel form(Object... pares) {
         JPanel p = new JPanel(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
@@ -983,6 +1003,7 @@ public class FrotaApp extends JFrame {
         return p;
     }
 
+    // 12: caixa de diálogo (JOptionPane.showConfirmDialog) que recebe os dados digitados nos formulários
     private boolean confirmar(String titulo, JComponent corpo) {
         return JOptionPane.showConfirmDialog(this, corpo, titulo, JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE) == JOptionPane.OK_OPTION;
     }
