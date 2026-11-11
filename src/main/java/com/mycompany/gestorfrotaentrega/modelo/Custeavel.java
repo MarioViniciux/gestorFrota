@@ -2,10 +2,10 @@ package com.mycompany.gestorfrotaentrega.modelo; // 9: pacote 'modelo' (o projet
 
 /**
  * REQUISITO DO PROFESSOR (interface):
- * Contrato de tudo aquilo que GERA CUSTO operacional. A interface diz O QUE deve ser
- * calculado, sem dizer COMO: cada classe que a implementa escolhe a fórmula.
+ * Contrato de tudo aquilo que GERA CUSTO operacional. 
+ * 
  *
- * Quem USA a interface (ex.: RepositorioVeiculos) só precisa saber que o objeto é
+ * Quem usa a interface (exemp; RepositorioVeiculos) só precisa saber que o objeto é
  * "Custeavel", sem se preocupar se é um Carro, uma Moto ou um Caminhão.
  */
 // 8: interface implementada por Veiculo (e suas filhas); sem get/set nem construtores
